@@ -1,19 +1,19 @@
 <div align="center">
 
-<img src="assets/hero.gif" alt="backdrop: animated gradient themes for Claude Code" width="100%">
+<img src="assets/hero.gif" alt="backdrop: the open-source theming kit for Claude Code" width="100%">
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.4.0-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-desktop%20mod-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
+[![Version](https://img.shields.io/badge/version-0.4.1-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-theming%20kit-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
 [![Palettes](https://img.shields.io/badge/palettes-23-b532dc?style=for-the-badge)](#palettes)
 [![License: MIT](https://img.shields.io/badge/license-MIT-1fd1a5?style=for-the-badge)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/AkkiCode06/claude-backdrops?style=for-the-badge&color=f9c80e)](https://github.com/AkkiCode06/claude-backdrops/stargazers)
 
-**Animated gradient backgrounds for Claude Code on desktop.**<br>
-23 palettes · make your own from a sentence · pauses itself on battery
+**The open-source theming kit for Claude Code.**<br>
+Theme Claude Code without writing a mod: **pick** a palette, **describe** a look, or **paste** some colors.
 
-[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [**Share your theme**](#community-themes) · [Roadmap](#roadmap) · [Privacy](#privacy)
+[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [**Theme guide**](docs/making-themes.md) · [**Share your theme**](#community-themes) · [Roadmap](#roadmap) · [Privacy](#privacy)
 
 </div>
 
@@ -21,6 +21,19 @@
 > **Community themes wanted!** Theming in Claude Code is brand new, and this is meant to grow into a shared library of themes, made by you or by your Claude. Made one you like? [Open a pull request](#community-themes) with a screenshot or a short clip.
 
 > **Asked Claude to set this up from the link?** Claude: read [`SETUP-GUIDE.md`](SETUP-GUIDE.md) and walk the person through it step by step.
+
+### Why a kit?
+
+Claude Code can now load theme mods, but making one yourself means writing a hooks file, SVG scenes and color tokens, then reloading to see each change. Backdrop does that part once, so theming is just a picker:
+
+| Without a kit | With Backdrop |
+| --- | --- |
+| Write or ask Claude to write a mod for every theme | Install once, then pick, describe or paste colors |
+| Reload to see each change | Live preview behind the picker |
+| Work out readable text and panel colors yourself | Panels, text and accents are derived from your colors automatically |
+| Each theme lives on one machine | Share yours with a PR; it ships to everyone, credited to you |
+
+It's also a **base to build on**: fork it, add palettes or whole new background styles, and send them back. See [Share your theme](#community-themes) and the [Roadmap](#roadmap).
 
 <img src="assets/features.svg" alt="23 animated palettes, make your own, battery-aware motion, built-in tour" width="100%">
 
@@ -86,6 +99,8 @@ Shortcuts: `/backdrop #1b4332 #2d6a4f #d4a373` makes one straight from the promp
 
 The mod works out readable panels, text and accent colors from whatever you pick.
 
+**→ Full walkthrough, from no-code to building a new background style: [How to make your own themes](docs/making-themes.md)**
+
 <br>
 
 <a name="palettes"></a>
@@ -149,7 +164,7 @@ Theming Claude Code only just became possible, so there's no shared library of t
 
 **Share yours in four steps:**
 
-1. **Make it:** in `/backdrop`, describe a look or paste hex colors, and **Save** it once you love it. Or ask your Claude to design one.
+1. **Make it:** in `/backdrop`, describe a look or paste hex colors, and **Save** it once you love it. Or ask your Claude to design one. ([Theme guide](docs/making-themes.md))
 2. **Add it:** fork this repo and add an entry to [`hooks/palettes.ts`](hooks/palettes.ts), with `author: '<your GitHub handle>'` so the picker credits you.
 3. **Check it:** `claude plugin validate .` and `claude plugin test .`. A test makes sure Claude Code can paint it.
 4. **Open a PR** using the **theme** template, with **a screenshot or a short clip** of it running. A few pictures are plenty. PRs that touch `hooks/palettes.ts` get the `theme` label automatically.

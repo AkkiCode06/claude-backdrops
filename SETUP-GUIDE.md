@@ -1,6 +1,6 @@
 # Setup guide (for Claude)
 
-This file is for an AI assistant, usually Claude, that someone has asked to help install **Gradient Flow** from this repository. Walk them through it one step at a time: say what to do, wait for them to say it worked, then go on. Keep each message short and in plain words. Skip a step when they've already done it.
+This file is for an AI assistant, usually Claude, that someone has asked to help install **Backdrop** (the plugin is named `gradient-flow`), an open-source theming kit for Claude Code, from this repository. Walk them through it one step at a time: say what to do, wait for them to say it worked, then go on. Keep each message short and in plain words. Skip a step when they've already done it.
 
 This guide only covers installing and using the mod. Don't run commands on their machine unless they ask you to, and don't change their settings for them.
 

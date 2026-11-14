@@ -1,8 +1,10 @@
-# Contributing to Gradient Flow
+# Contributing to Backdrop
 
 Thanks for wanting to make Claude Code prettier. Theming in Claude Code is brand new, and the goal is a shared library of community themes, so **themes are the most wanted contribution.**
 
 ## Share a theme
+
+The step-by-step version, with color recipes and how to build new background styles, is in **[docs/making-themes.md](docs/making-themes.md)**.
 
 1. Try your colors live first: `/backdrop`, then **Make your own**, paste the hex codes and **Save**.
 2. Copy an entry in [`hooks/palettes.ts`](hooks/palettes.ts) and fill in:

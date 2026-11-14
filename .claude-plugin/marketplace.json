@@ -1,6 +1,6 @@
 {
   "name": "claude-backdrops",
-  "description": "Animated gradient backgrounds and themes for Claude Code on desktop.",
+  "description": "The open-source theming kit for Claude Code, and a home for community themes.",
   "owner": {
     "name": "AkkiCode06"
   },
@@ -8,7 +8,7 @@
     {
       "name": "gradient-flow",
       "source": "./",
-      "description": "Animated gradient backgrounds for Claude Code on desktop: 23 palettes, your own colors, and battery-aware motion."
+      "description": "Theme Claude Code without writing a mod: pick, describe or paste colors. 23 animated palettes, battery-aware."
     }
   ]
 }
