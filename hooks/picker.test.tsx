@@ -119,3 +119,19 @@ test('a tour that was drawn is marked as seen', async ($, on) => {
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   expect(stored.welcomed).toBe(true)
 })
+
+test('Open the picker swaps the tour for the picker', async ($, on) => {
+  const opened: string[] = []
+  const closed: string[] = []
+  engine(on, { opened })
+  on('ui.close', (_, e) => {
+    closed.push(e.id)
+    return { value: undefined }
+  })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, requestId: 'gradient-flow-tour', surface: 'desktop' })
+  await ui.press({ key: 'tour-open-picker' })
+  expect(closed).toContain('gradient-flow-tour')
+  expect(opened).toContain('background-picker')
+  await ui.unmount()
+})

@@ -480,6 +480,7 @@ export const register: Register = on => {
             variant="primary"
             onPress={() => {
               void $.store.set('welcomed', true)
+              void $.ui.close({ id: TOUR_PANE })
               void $.ui.open({ id: PANE, title: PANE_TITLE })
             }}
           />
