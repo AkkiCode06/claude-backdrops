@@ -65,6 +65,38 @@ That's why **Auto** is the default: full motion when plugged in, still on batter
 - **The prompt box looks solid:** that's expected. The app draws it as a solid color, and the mod tints it to match the palette.
 - **"Those colors don't leave enough contrast":** pick darker or more varied colors.
 
+## What it runs, sends and stores
+
+Gradient Flow is a hooks module: it runs inside Claude Code, with no network access or programs of its own beyond what's listed here.
+
+**What it sends, and where**
+- **Describe a look** (the picker field, or `/backdrop` → Make your own): the words you type are sent to Claude (the `haiku` model) through Claude Code's own model connection (`$.model.complete`), with a short instruction asking for 4–5 hex colors back. Nothing else goes with them: no conversation, files or settings. It counts toward your Claude Code usage like any request.
+- **Nothing else leaves your machine.** Picking palettes, pasting hex colors, Analogous / Complementary / Triad, Surprise me and the animations all run locally.
+
+**Credentials:** the mod reads, stores and sends no API keys, tokens or passwords. The model call above goes through Claude Code's existing sign-in, which the mod never sees.
+
+**Programs it runs**
+- `/usr/bin/pmset -g batt`, read-only, once at startup and then every 30 seconds, only to tell whether the Mac is on battery (for **Auto** motion). On other systems the call fails harmlessly and the mod assumes you're plugged in.
+
+**What it stores** (in Claude Code's per-plugin store on your machine): your chosen palette, motion setting, the palettes you saved, whether you've seen the welcome tour, and how many times it has shown the tour hint.
+
+**Tools and commands it adds**
+- `/backdrop`, a slash command (picker, palettes, colors, motion, `tour`).
+- `background`, a tool Claude can call to open the picker or tour, switch or make palettes, and set motion. It stands in for no other tool: its hook only receives calls to `mcp__gradient-flow__background`.
+
+**Hooks**
+
+| Hook | What it does |
+| --- | --- |
+| `session.start` | Restores your saved choices, checks the power source, registers `/backdrop` and the `background` tool, draws the theme, and opens the welcome tour the first time. |
+| `session.attach` | When the desktop or mobile app connects, opens the welcome tour if it hasn't been shown yet, or shows a one-line hint (at most three times). |
+| `command.run` (`backdrop`) | Answers `/backdrop` and its arguments. |
+| `tool.call` (`background` only) | Answers Claude's `background` tool. |
+| `ui.render` (`Backdrop`) | Draws the animated gradient behind the conversation (desktop and mobile only). |
+| `ui.render` (the two panes) | Draws the picker and the welcome tour. |
+
+No other plugin calls into it, and it calls into none.
+
 ## Make it yours
 
 Palettes live in [`hooks/palettes.ts`](hooks/palettes.ts). Copy an entry, change the colors, and run `claude plugin validate .` to check it.

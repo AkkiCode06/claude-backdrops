@@ -18,7 +18,7 @@ const PANE = 'background-picker'
 const PANE_TITLE = 'Background'
 const TOUR_PANE = 'gradient-flow-tour'
 const TOUR_TITLE = 'Welcome to Gradient Flow'
-const TOOL = 'mcp__gradient-flow__background'
+const TOOL = 'mcp__gradient-flow__background' as const
 const MOTIONS: readonly Motion[] = ['auto', 'on', 'off']
 const MOTION_LABEL: Record<Motion, string> = { auto: 'Auto (battery-aware)', on: 'Always move', off: 'Still' }
 const MAX_CUSTOMS = 12
@@ -423,9 +423,12 @@ export const register: Register = on => {
     return { text: await ctl.choose(id) }
   })
 
-  // Claude's `background` tool (matched by name here: a matcher on an mcp tool
-  // name makes the type checker walk every tool's input).
-  on('tool.call', async ($, e, next) => {
+  // Claude's `background` tool. The matcher means this hook only ever sees
+  // calls to its own tool; every other tool call never reaches it.
+  // (The type checker can't expand an mcp tool name's input type, hence the
+  // ts-ignore; the matcher itself is what keeps other tools away.)
+  // @ts-ignore TS2589
+  on('tool.call', { tool: TOOL }, async ($, e, next) => {
     if (String(e.tool) !== TOOL) return next(e)
     const answer = async (): Promise<string> => {
       if (ctl === undefined) return 'Gradient Flow is still starting; try again in a moment.'
@@ -453,7 +456,7 @@ export const register: Register = on => {
     }
     const text: string = await answer()
     return { result: text as never }
-  })
+  }).catch(() => ({ result: 'The background tool hit an error. Try /backdrop instead.' as never }))
 
   // The welcome tour: the animation on desktop and mobile, the same steps as
   // text everywhere, and a way on to the picker.
