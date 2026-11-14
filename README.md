@@ -9,6 +9,7 @@ Animated gradient backgrounds for **Claude Code on desktop**. Pick from 23 palet
 - **23 palettes:** Ember, Sunset, Violet, Cyberpunk, Ocean, Aurora, Mint lime, Rose gold, Midnight, Synthwave, Lagoon, Forest, Lavender, Citrus, Neon Tokyo, Galaxy, Cherry blossom, Arctic, Desert, Autumn, Matrix, Coffee and Graphite. Each one recolors the background and the app's panels, text and accent color to match.
 - **Your own palettes:** in the picker, describe a look ("cozy forest at dusk") and Claude picks the colors, or paste 1–5 hex colors from any color picker and let **Analogous / Complementary / Triad** build a matching set from the first one, or hit **Surprise me**. Everything previews live; **Save** keeps it. The mod works out readable panels and text from your colors.
 - **A picker:** run `/backdrop`, or just ask Claude to change your background.
+- **An animated tour:** opens by itself the first time, showing each feature in a 20-second loop. Replay it with `/backdrop tour`.
 - **Battery-aware motion:** on **Auto**, the glows drift while you're plugged in and ease to a stop on battery. Plugging back in eases them back up. You can also set **Always move** or **Still**.
 - **Smooth motion:** the glows orbit continuously with no stalls. Starts and stops ease in and out, never snap.
 
@@ -39,6 +40,7 @@ The background appears in your next Claude Code session on desktop.
 | You want to | Do this |
 | --- | --- |
 | Open the picker | `/backdrop`, or ask Claude "change my background" |
+| Watch the tour | `/backdrop tour`, or ask Claude "how does this work?" |
 | Switch palette | `/backdrop ocean`, or click it in the picker |
 | Make your own | In `/backdrop`: describe a look and press **Preview**, or paste hex colors, try **Analogous**, **Complementary**, **Triad** or **Surprise me**, then name it and **Save**. Also: `/backdrop #1b4332 #2d6a4f #d4a373`, or ask Claude "make me a cozy forest background" |
 | Change motion | `/backdrop auto`, `/backdrop move` or `/backdrop still` |

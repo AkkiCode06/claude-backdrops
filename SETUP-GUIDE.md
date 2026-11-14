@@ -29,13 +29,13 @@ Give them the steps for where they are:
 
 then answer `y`, and press Enter for the user scope.
 
-Then ask them to **start a new Claude Code session** in the desktop app. The background should appear: the Ember palette, gently moving if they're plugged in.
+Then ask them to **start a new Claude Code session** in the desktop app. The background should appear (the Ember palette, gently moving if they're plugged in), and a **Welcome to Gradient Flow** pane opens with an animated tour of every feature.
 
 If nothing shows, check that the app is in dark mode and that the plugin is listed and enabled under **+** → **Plugins**.
 
 ## 3. Show them around
 
-Once it's working, give a short tour. Suggest they try each thing:
+Once it's working, point them to the animated tour in the welcome pane. If they closed it, `/backdrop tour` replays it. Then suggest they try each thing:
 
 1. **The picker:** run `/backdrop`. A pane opens with all the palettes, a motion setting and a field for their own colors.
 2. **Switching:** click any palette, or type `/backdrop ocean`.

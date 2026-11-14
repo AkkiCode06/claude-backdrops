@@ -16,14 +16,17 @@ const PANE = {
 
 // Stand in for the engine: nothing stored yet, plugged in, every theme drawn.
 type TestOn = Parameters<Extract<Parameters<typeof test>[1], (...args: never[]) => unknown>>[1]
-const engine = (on: TestOn) => {
-  on('store.get', () => ({ value: undefined }))
+const engine = (on: TestOn, opts: { welcomed?: boolean; opened?: string[] } = {}) => {
+  on('store.get', (_, e) => ({ value: e.key === 'welcomed' ? opts.welcomed : undefined }))
   on('store.set', () => ({ value: undefined }))
   on('process.run', () => ({ value: { exitCode: 0, stdout: "Now drawing from 'AC Power'", stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }))
   on('theme.set', () => ({ value: { isDrawn: true, requestId: 'theme' } }))
   on('command.register', () => ({ value: { command: 'backdrop' } }))
   on('tool.register', () => ({ value: { tool: 'mcp__gradient-flow__background' } }))
-  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.open', (_, e) => {
+    opts.opened?.push(e.id)
+    return { value: { isPlaced: true } }
+  })
   on('clock.now', () => ({ value: 1_000 }))
   // Timers never fire in these tests.
   on('clock.every', () => new Promise(() => {}))
@@ -76,4 +79,24 @@ test('a described look is previewed from the colors the model picks', async ($, 
   await ui.press({ key: 'discard' })
   expect(await ui.find({ type: 'Text', text: /Previewing/ })).toBeUndefined()
   await ui.unmount()
+})
+
+test('the tour opens once on first run and draws on every surface', async ($, on) => {
+  const opened: string[] = []
+  engine(on, { opened })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(opened).toContain('gradient-flow-tour')
+
+  for (const surface of ['terminal', 'desktop', 'mobile'] as const) {
+    const ui = await $.ui.mount({ ...PANE, requestId: 'gradient-flow-tour', props: { ...PANE.props, title: 'Welcome to Gradient Flow' }, surface })
+    expect((await ui.find({ type: 'Text', text: /Replay this anytime/ }))?.text).toMatch(/backdrop tour/)
+    await ui.unmount()
+  }
+})
+
+test('once welcomed, the tour stays closed', async ($, on) => {
+  const opened: string[] = []
+  engine(on, { welcomed: true, opened })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(opened).not.toContain('gradient-flow-tour')
 })

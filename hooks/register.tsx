@@ -4,6 +4,7 @@ import type { Register, ThemeSetArgs } from 'claude-code'
 import type { Motion, StoredPalette } from '../types'
 import { colorsFor, harmony, paletteFromColors, parseColors, surprise, type Harmony } from './custom'
 import { DEFAULT_PALETTE, PALETTES, type Palette } from './palettes'
+import { TOUR_STEPS, TOUR_SVG } from './tour'
 import { buildScene, phasesAt, SETTLE_S, settledAt, swatch, ZERO, type Mode, type Run } from './scene'
 
 // Gradient Flow: animated gradient backgrounds for Claude Code on desktop.
@@ -15,6 +16,8 @@ import { buildScene, phasesAt, SETTLE_S, settledAt, swatch, ZERO, type Mode, typ
 
 const PANE = 'background-picker'
 const PANE_TITLE = 'Background'
+const TOUR_PANE = 'gradient-flow-tour'
+const TOUR_TITLE = 'Welcome to Gradient Flow'
 const TOOL = 'mcp__gradient-flow__background'
 const MOTIONS: readonly Motion[] = ['auto', 'on', 'off']
 const MOTION_LABEL: Record<Motion, string> = { auto: 'Auto (battery-aware)', on: 'Always move', off: 'Still' }
@@ -314,7 +317,7 @@ export const register: Register = on => {
       await $.command.register({
         name: 'backdrop',
         description: 'Pick an animated background, or make your own from colors',
-        argumentHint: '[palette | #hex #hex … | still | move | auto]',
+        argumentHint: '[palette | #hex #hex … | still | move | auto | tour]',
       })
     } catch (err) {
       $.ui.toast(`Gradient Flow: /backdrop is unavailable (${String(err)}); ask Claude to change the background instead.`)
@@ -329,11 +332,11 @@ export const register: Register = on => {
         "'open_picker' opens the picker pane so they choose themselves (use it when they just say 'change my background'); " +
         "'set' switches to a palette by id; 'create' makes a palette from 1-5 hex colors you pick to match what they describe " +
         "(for 'cozy forest': deep greens and a warm amber) and switches to it; 'motion' sets auto (moves only when plugged in), on or off; " +
-        "'remove' deletes one they made; 'list' says what exists. Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
+        "'remove' deletes one they made; 'list' says what exists; 'tour' opens an animated walkthrough of how it all works (use it when they ask how it works or just installed it). Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
       inputSchema: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['open_picker', 'set', 'create', 'motion', 'remove', 'list'] },
+          action: { type: 'string', enum: ['open_picker', 'tour', 'set', 'create', 'motion', 'remove', 'list'] },
           palette: { type: 'string', description: "A palette id, for 'set' and 'remove'." },
           name: { type: 'string', description: "A short name for a new palette, for 'create'." },
           colors: { type: 'array', items: { type: 'string' }, description: "1-5 hex colors like '#1b4332', for 'create'." },
@@ -349,6 +352,12 @@ export const register: Register = on => {
     // Draw what was chosen: moving (easing in) or still.
     if (shouldMove()) await startMoving(true)
     else await draw({ kind: 'still', at: restAt })
+
+    // The first time the mod runs, show the welcome tour once.
+    if ((await $.store.get('welcomed')) !== true) {
+      await $.store.set('welcomed', true)
+      void $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+    }
 
     // Follow the power source.
     $.clock.every(30_000, () => {
@@ -377,6 +386,10 @@ export const register: Register = on => {
       return { text: 'Opened the background picker.' }
     }
     const word = args.toLowerCase()
+    if (word === 'tour' || word === 'help') {
+      await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+      return { text: 'Opened the Gradient Flow tour.' }
+    }
     if (word === 'still' || word === 'off') return { text: await ctl.setMotion('off') }
     if (word === 'move' || word === 'on') return { text: await ctl.setMotion('on') }
     if (word === 'auto') return { text: await ctl.setMotion('auto') }
@@ -397,6 +410,9 @@ export const register: Register = on => {
         case 'open_picker':
           await $.ui.open({ id: PANE, title: PANE_TITLE })
           return 'Opened the background picker pane; the user can choose there.'
+        case 'tour':
+          await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+          return 'Opened the animated tour pane: four scenes showing the background, the /backdrop picker, making a palette, and battery-aware motion.'
         case 'set':
           if (input.palette === undefined || !ctl.isKnown(input.palette)) return `Unknown palette. ${await ctl.describe()}`
           return ctl.choose(input.palette)
@@ -413,6 +429,33 @@ export const register: Register = on => {
     }
     const text: string = await answer()
     return { result: text as never }
+  })
+
+  // The welcome tour: the animation on desktop and mobile, the same steps as
+  // text everywhere, and a way on to the picker.
+  on('ui.render', { component: 'Pane', requestId: TOUR_PANE }, ($, e) => {
+    const ui = $.ui.resolve(e)
+    const { Box, Text, Button } = ui
+    const hasSvg = e.surface === 'desktop' || e.surface === 'mobile'
+    const width = Math.min(Math.max((e.props.bodyColumns ?? 60) * 8, 320), 640)
+    return (
+      <Box flexDirection="column" gap={1}>
+        {hasSvg && 'Svg' in ui ? (
+          <ui.Svg source={TOUR_SVG} alt="An animated tour of Gradient Flow" width={width} height={Math.round((width * 440) / 640)} isInteractive />
+        ) : null}
+        {TOUR_STEPS.map((step, i) => (
+          <Text key={`step-${i}`}>
+            <Text dimColor>{i + 1}. </Text>
+            {step}
+          </Text>
+        ))}
+        <Box flexDirection="row" gap={1}>
+          <Button key="tour-open-picker" label="Open the picker" variant="primary" onPress={() => void $.ui.open({ id: PANE, title: PANE_TITLE })} />
+          <Button key="tour-done" label="Got it" onPress={() => void $.ui.close({ id: TOUR_PANE })} />
+        </Box>
+        <Text dimColor>Replay this anytime with /backdrop tour, or ask Claude how backgrounds work.</Text>
+      </Box>
+    )
   })
 
   // The picker pane.

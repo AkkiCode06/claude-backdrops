@@ -13,6 +13,7 @@ The Gradient Flow mod draws an animated gradient behind Claude Code on desktop a
 - **They name a palette** ("make it ocean"): `set` with its id. Presets: `ember`, `sunset`, `violet`, `cyberpunk`, `ocean`, `aurora`, `mint`, `rose`, `midnight`, `synthwave`, `lagoon`, `forest`, `lavender`, `citrus`, `neon-tokyo`, `galaxy`, `cherry-blossom`, `arctic`, `desert`, `autumn`, `matrix`, `coffee`, `graphite`. If one fits what they describe, prefer it over making a new palette.
 - **They describe a mood or give colors** ("cozy forest", "my brand colors #0a2540 #635bff"): `create` with a short `name` and 3–5 hex `colors`. For a mood, choose colors that carry it: one or two deep tones plus one or two brighter glows. For example, "cozy forest" could be `#1b4332 #2d6a4f #40916c #d4a373`. The mod works out readable panels and text by itself.
 - **"Stop the animation" / "it's draining my battery"**: `motion` `off`. **"Make it move again"**: `on`. **Only when plugged in**: `auto` (the default).
+- **"How does this work?" / they just installed it**: `tour` opens the animated walkthrough.
 - **"What backgrounds are there?"**: `list`, then answer in a sentence or two.
 - **"Delete the one I made"**: `remove` with its id (from `list`). Presets can't be removed.
 
