@@ -1,6 +1,6 @@
 {
   "name": "gradient-flow",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Animated gradient backgrounds for Claude Code on desktop: 23 palettes, your own colors, and battery-aware motion. Run /backdrop to pick.",
   "types": "./types/index.d.ts",
   "license": "MIT"

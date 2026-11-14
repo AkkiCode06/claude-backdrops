@@ -16,16 +16,19 @@ const PANE = {
 
 // Stand in for the engine: nothing stored yet, plugged in, every theme drawn.
 type TestOn = Parameters<Extract<Parameters<typeof test>[1], (...args: never[]) => unknown>>[1]
-const engine = (on: TestOn, opts: { welcomed?: boolean; opened?: string[] } = {}) => {
+const engine = (on: TestOn, opts: { welcomed?: boolean; opened?: string[]; placed?: boolean; stored?: Record<string, unknown> } = {}) => {
   on('store.get', (_, e) => ({ value: e.key === 'welcomed' ? opts.welcomed : undefined }))
-  on('store.set', () => ({ value: undefined }))
+  on('store.set', (_, e) => {
+    if (opts.stored) opts.stored[e.key] = e.value
+    return { value: undefined }
+  })
   on('process.run', () => ({ value: { exitCode: 0, stdout: "Now drawing from 'AC Power'", stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }))
   on('theme.set', () => ({ value: { isDrawn: true, requestId: 'theme' } }))
   on('command.register', () => ({ value: { command: 'backdrop' } }))
   on('tool.register', () => ({ value: { tool: 'mcp__gradient-flow__background' } }))
   on('ui.open', (_, e) => {
     opts.opened?.push(e.id)
-    return { value: { isPlaced: true } }
+    return { value: opts.placed === false ? { isPlaced: false, reason: 'no-surface: none attached' } : { isPlaced: true } }
   })
   on('clock.now', () => ({ value: 1_000 }))
   // Timers never fire in these tests.
@@ -99,4 +102,20 @@ test('once welcomed, the tour stays closed', async ($, on) => {
   engine(on, { welcomed: true, opened })
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   expect(opened).not.toContain('gradient-flow-tour')
+})
+
+test('a tour that could not be drawn is not marked as seen', async ($, on) => {
+  const stored: Record<string, unknown> = {}
+  const opened: string[] = []
+  engine(on, { opened, placed: false, stored })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(opened).toContain('gradient-flow-tour')
+  expect(stored.welcomed).toBeUndefined()
+})
+
+test('a tour that was drawn is marked as seen', async ($, on) => {
+  const stored: Record<string, unknown> = {}
+  engine(on, { stored })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(stored.welcomed).toBe(true)
 })

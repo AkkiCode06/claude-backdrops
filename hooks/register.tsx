@@ -353,10 +353,13 @@ export const register: Register = on => {
     if (shouldMove()) await startMoving(true)
     else await draw({ kind: 'still', at: restAt })
 
-    // The first time the mod runs, show the welcome tour once.
+    // The first time the mod runs, show the welcome tour. It counts as seen
+    // only once its pane is actually drawn (or the person closes it): at
+    // session start the app may not be attached yet, so session.attach
+    // below tries again.
     if ((await $.store.get('welcomed')) !== true) {
-      await $.store.set('welcomed', true)
-      void $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+      const opened = await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+      if (opened.isPlaced) await $.store.set('welcomed', true)
     }
 
     // Follow the power source.
@@ -374,6 +377,26 @@ export const register: Register = on => {
     return next(e)
   })
 
+  // When the desktop or mobile app attaches, show the tour if it hasn't been
+  // seen. Where the app won't place it, point to /backdrop tour instead, at
+  // most three times.
+  on('session.attach', async ($, e, next) => {
+    const attached = await next(e)
+    if (e.surface !== 'desktop' && e.surface !== 'mobile') return attached
+    if ((await $.store.get('welcomed')) === true) return attached
+    const opened = await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
+    if (opened.isPlaced) {
+      await $.store.set('welcomed', true)
+      return attached
+    }
+    const hints = Number((await $.store.get('tourHints')) ?? 0)
+    if (hints < 3) {
+      await $.store.set('tourHints', hints + 1)
+      $.ui.toast('New to Gradient Flow? Run /backdrop tour for a quick animated walkthrough.')
+    }
+    return attached
+  })
+
   // /backdrop            -> open the picker
   // /backdrop ocean      -> switch palette
   // /backdrop #a #b #c   -> make a palette from those colors
@@ -387,6 +410,7 @@ export const register: Register = on => {
     }
     const word = args.toLowerCase()
     if (word === 'tour' || word === 'help') {
+      await $.store.set('welcomed', true)
       await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
       return { text: 'Opened the Gradient Flow tour.' }
     }
@@ -450,8 +474,23 @@ export const register: Register = on => {
           </Text>
         ))}
         <Box flexDirection="row" gap={1}>
-          <Button key="tour-open-picker" label="Open the picker" variant="primary" onPress={() => void $.ui.open({ id: PANE, title: PANE_TITLE })} />
-          <Button key="tour-done" label="Got it" onPress={() => void $.ui.close({ id: TOUR_PANE })} />
+          <Button
+            key="tour-open-picker"
+            label="Open the picker"
+            variant="primary"
+            onPress={() => {
+              void $.store.set('welcomed', true)
+              void $.ui.open({ id: PANE, title: PANE_TITLE })
+            }}
+          />
+          <Button
+            key="tour-done"
+            label="Got it"
+            onPress={() => {
+              void $.store.set('welcomed', true)
+              void $.ui.close({ id: TOUR_PANE })
+            }}
+          />
         </Box>
         <Text dimColor>Replay this anytime with /backdrop tour, or ask Claude how backgrounds work.</Text>
       </Box>
