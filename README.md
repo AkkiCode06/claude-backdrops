@@ -1,25 +1,56 @@
-# Gradient Flow
+<div align="center">
 
-Animated gradient backgrounds for **Claude Code on desktop**. Pick from 23 palettes, make your own from any colors, and let the motion pause by itself when you're on battery.
+<img src="assets/hero.gif" alt="backdrop: animated gradient themes for Claude Code" width="100%">
+
+<br>
+
+[![Version](https://img.shields.io/badge/version-0.3.3-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-desktop%20mod-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
+[![Palettes](https://img.shields.io/badge/palettes-23-b532dc?style=for-the-badge)](#palettes)
+[![License: MIT](https://img.shields.io/badge/license-MIT-1fd1a5?style=for-the-badge)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/AkkiCode06/claude-backdrops?style=for-the-badge&color=f9c80e)](https://github.com/AkkiCode06/claude-backdrops/stargazers)
+
+**Animated gradient backgrounds for Claude Code on desktop.**<br>
+23 palettes · make your own from a sentence · pauses itself on battery
+
+[Install](#install) · [Use](#use) · [Palettes](#palettes) · [Contribute](CONTRIBUTING.md) · [Report a bug](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=bug_report.yml) · [Suggest a palette](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=palette_request.yml)
+
+</div>
 
 > **Asked Claude to set this up from the link?** Claude: read [`SETUP-GUIDE.md`](SETUP-GUIDE.md) and walk the person through it step by step.
 
-![Switching palettes in the /backdrop picker](assets/picker.gif)
+### Quick install
 
-## See it
+In the Claude Code desktop app: **+** → **Plugins** → **Add marketplace** → `AkkiCode06/claude-backdrops` → **Add plugin**.<br>
+Or paste this repo's link to Claude and say *"set this up for me"*.
 
-| Make your own from a description | The built-in welcome tour |
-| --- | --- |
-| ![Describing "sunset in LA", previewing it, and saving it](assets/sunset-in-la.gif) | ![The animated welcome tour](assets/tour.gif) |
+<img src="assets/features.svg" alt="23 animated palettes, make your own, battery-aware motion, built-in tour" width="100%">
+
+## See it in action
+
+<img src="assets/picker.gif" alt="Switching palettes in the /backdrop picker" width="100%">
+
+<table>
+<tr>
+<td width="50%"><b>Describe a look → preview → save</b><br><img src="assets/sunset-in-la.gif" alt="Describing sunset in LA, previewing it, and saving it"></td>
+<td width="50%"><b>The built-in welcome tour</b><br><img src="assets/tour.gif" alt="The animated welcome tour"></td>
+</tr>
+</table>
+
+## Palettes
+
+<img src="assets/palettes.svg" alt="All 23 built-in palettes" width="100%">
+
+Switch with `/backdrop <id>`, click one in the picker, or ask Claude. Want another? [Suggest a palette](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=palette_request.yml) or add one yourself ([how](CONTRIBUTING.md#add-a-palette)).
 
 ## What you get
 
-- **23 palettes:** Ember, Sunset, Violet, Cyberpunk, Ocean, Aurora, Mint lime, Rose gold, Midnight, Synthwave, Lagoon, Forest, Lavender, Citrus, Neon Tokyo, Galaxy, Cherry blossom, Arctic, Desert, Autumn, Matrix, Coffee and Graphite. Each one recolors the background and the app's panels, text and accent color to match.
-- **Your own palettes:** in the picker, describe a look ("cozy forest at dusk") and Claude picks the colors, or paste 1–5 hex colors from any color picker and let **Analogous / Complementary / Triad** build a matching set from the first one, or hit **Surprise me**. Everything previews live; **Save** keeps it. The mod works out readable panels and text from your colors.
-- **A picker:** run `/backdrop`, or just ask Claude to change your background.
-- **An animated tour:** opens by itself the first time, showing each feature in a 20-second loop. Replay it with `/backdrop tour`.
-- **Battery-aware motion:** on **Auto**, the glows drift while you're plugged in and ease to a stop on battery. Plugging back in eases them back up. You can also set **Always move** or **Still**.
-- **Smooth motion:** the glows orbit continuously with no stalls. Starts and stops ease in and out, never snap.
+- **23 palettes**, each recoloring the background *and* the app's panels, text and accent to match.
+- **Your own palettes:** describe a look ("cozy forest at dusk") and Claude picks the colors, or paste 1–5 hex colors and let **Analogous / Complementary / Triad** build a set, or hit **Surprise me**. Live preview; **Save** keeps it.
+- **A picker:** `/backdrop`, or just ask Claude to change your background.
+- **An animated tour** on first run; replay with `/backdrop tour`.
+- **Battery-aware motion:** on **Auto** the glows drift when plugged in and ease to a stop on battery. Or choose **Always move** / **Still**.
+- **Smooth motion:** continuous orbits with no stalls; starts and stops ease in and out.
 
 ## Install
 
@@ -108,6 +139,10 @@ No other plugin calls into it, and it calls into none.
 ## Make it yours
 
 Palettes live in [`hooks/palettes.ts`](hooks/palettes.ts). Copy an entry, change the colors, and run `claude plugin validate .` to check it.
+
+## Contributing
+
+Palettes, bug reports and ideas are all welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). If you make a palette you love, share it in an issue.
 
 ## License
 

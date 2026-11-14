@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="284" viewBox="0 0 1100 284"><linearGradient id="c0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4e1a"/><stop offset="1" stop-color="#ffa23a"/></linearGradient>
+<rect x="0" y="0" width="540" height="132" rx="18" fill="#12121b" stroke="#ffffff" stroke-opacity=".08"/>
+<rect x="24" y="30" width="72" height="72" rx="18" fill="url(#c0)"/>
+<g transform="translate(36,42)" color="#ffffff"><path d="M24 6a18 18 0 1 0 0 36c2.2 0 3.6-1.8 3.6-3.6 0-1-.4-1.8-1-2.4-.6-.6-1-1.4-1-2.4 0-2 1.6-3.6 3.6-3.6H33A9 9 0 0 0 42 21C42 12.7 34 6 24 6Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="15" cy="21" r="2.6" fill="currentColor"/><circle cx="21" cy="14" r="2.6" fill="currentColor"/><circle cx="29.5" cy="14.5" r="2.6" fill="currentColor"/></g>
+<text x="120" y="58" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="21" font-weight="700" fill="#ffffff">23 animated palettes</text>
+<text x="120" y="86" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">Ember, Synthwave, Aurora, Matrix… switch from</text><text x="120" y="108" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">/backdrop or just ask Claude.</text>
+<linearGradient id="c1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2e97"/><stop offset="1" stop-color="#8e44ad"/></linearGradient>
+<rect x="560" y="0" width="540" height="132" rx="18" fill="#12121b" stroke="#ffffff" stroke-opacity=".08"/>
+<rect x="584" y="30" width="72" height="72" rx="18" fill="url(#c1)"/>
+<g transform="translate(596,42)" color="#ffffff"><path d="M24 5l3.6 11.4L39 20l-11.4 3.6L24 35l-3.6-11.4L9 20l11.4-3.6Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M37 32l1.4 4.6L43 38l-4.6 1.4L37 44l-1.4-4.6L31 38l4.6-1.4Z" fill="currentColor"/></g>
+<text x="680" y="58" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="21" font-weight="700" fill="#ffffff">Make your own</text>
+<text x="680" y="86" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">Describe a look (“sunset in LA”) or paste hex</text><text x="680" y="108" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">colors. Live preview, then save.</text>
+<linearGradient id="c2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1fd1a5"/><stop offset="1" stop-color="#3a7bd5"/></linearGradient>
+<rect x="0" y="152" width="540" height="132" rx="18" fill="#12121b" stroke="#ffffff" stroke-opacity=".08"/>
+<rect x="24" y="182" width="72" height="72" rx="18" fill="url(#c2)"/>
+<g transform="translate(36,194)" color="#ffffff"><rect x="5" y="14" width="34" height="20" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><rect x="40" y="20" width="4" height="8" rx="1.5" fill="currentColor"/><path d="M23 17l-6 8h6l-2 6 7-9h-6Z" fill="currentColor"/></g>
+<text x="120" y="210" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="21" font-weight="700" fill="#ffffff">Battery-aware motion</text>
+<text x="120" y="238" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">Glows ease to a stop on battery and ease back</text><text x="120" y="260" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">when you plug in.</text>
+<linearGradient id="c3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9c80e"/><stop offset="1" stop-color="#ff8c42"/></linearGradient>
+<rect x="560" y="152" width="540" height="132" rx="18" fill="#12121b" stroke="#ffffff" stroke-opacity=".08"/>
+<rect x="584" y="182" width="72" height="72" rx="18" fill="url(#c3)"/>
+<g transform="translate(596,194)" color="#ffffff"><circle cx="24" cy="24" r="18" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 16.5v15l12-7.5Z" fill="currentColor"/></g>
+<text x="680" y="210" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="21" font-weight="700" fill="#ffffff">Built-in tour</text>
+<text x="680" y="238" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">An animated walkthrough opens on first run.</text><text x="680" y="260" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#a9a9b8">Replay with /backdrop tour.</text></svg>

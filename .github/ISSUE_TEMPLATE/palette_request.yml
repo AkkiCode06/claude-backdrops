@@ -1,0 +1,25 @@
+name: Palette idea
+description: Suggest a new built-in palette
+title: "[Palette] "
+labels: ["palette"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      placeholder: Tokyo rain
+    validations:
+      required: true
+  - type: input
+    id: colors
+    attributes:
+      label: Colors (1–5 hex)
+      description: A deep tone first, then the brighter glows. Try them first with /backdrop and paste what you saved.
+      placeholder: "#0b1026 #3a0ca3 #f72585 #4cc9f0"
+    validations:
+      required: true
+  - type: textarea
+    id: vibe
+    attributes:
+      label: The vibe
+      description: What it should feel like, or a screenshot of it running.

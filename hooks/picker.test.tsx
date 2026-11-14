@@ -1,4 +1,6 @@
 import { expect, test } from 'claude-code/testing'
+import { colorsFor } from './custom'
+import { PALETTES } from './palettes'
 
 const PANE = {
   plugin: 'gradient-flow',
@@ -134,4 +136,11 @@ test('Open the picker swaps the tour for the picker', async ($, on) => {
   expect(closed).toContain('gradient-flow-tour')
   expect(opened).toContain('background-picker')
   await ui.unmount()
+})
+
+test('Claude Code will paint every built-in palette', () => {
+  for (const p of PALETTES) {
+    const blocking = colorsFor(p).problems.filter(line => line.startsWith("Desktop won't paint"))
+    expect({ palette: p.id, blocking }).toEqual({ palette: p.id, blocking: [] })
+  }
 })
