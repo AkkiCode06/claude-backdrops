@@ -172,13 +172,28 @@ The goal: a **Spicetify-style theme marketplace for Claude Code**, where anyone 
 | 🔜 Next | **High-contrast mode:** stronger borders and text for readability and accessibility |
 | 🔜 Next | **Focus mode:** a calm, near-still backdrop while Claude is working, which wakes up when it's done |
 | 🔜 Next | **Time-of-day mode:** palettes that shift with the clock, from sunrise to midnight |
-| 🔜 Next | More scene styles beyond glows: waves, grain, starfields |
+| 🔜 Next | **More background styles** beyond gradient glows (see below) |
 | 💭 Later | **Status mode:** the backdrop reacts to what Claude is doing (thinking, running tools, done, error) |
 | 💭 Later | **Per-project themes:** a different palette for each repo, so you always know where you are |
 | 💭 Later | **Seasonal and event packs**, plus a low-power mode tuned for older Macs |
 | 💭 Later | A browsable theme gallery with one-click install, plus ratings and tags |
 
-Got an idea or want to help build any of it? [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) and let's talk.
+**Background styles on the way.** Gradients are just the first style. Each of these would come with its own palettes and its own motion:
+
+| Style | What it looks like |
+| --- | --- |
+| 🖼️ **Your own image** | Any wallpaper or photo behind your chats, with readable panels on top |
+| ✨ **Starfield** | Slow-drifting stars and the occasional shooting star |
+| 🌊 **Waves** | Layered sine waves rolling along the bottom of the window |
+| 🌧️ **Rain and snow** | Gentle falling particles, with weather packs |
+| 🌌 **Aurora ribbons** | Northern-lights curtains swaying across the top |
+| 🌆 **Synthwave grid** | A retro horizon with a glowing sun and a scrolling grid |
+| 💚 **Code rain** | Falling characters, Matrix-style |
+| 🫧 **Lava lamp** | Big soft blobs that merge and split |
+| 🔷 **Geometric** | Slowly rotating shapes, low-poly fields and dot grids |
+| 👾 **Pixel art** | Tiny animated pixel scenes: a cozy room, a city at night |
+
+Want to build one? Each style is just an animated SVG scene, so a style is a great first PR. [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) to claim one, or suggest your own.
 
 <br>
 
