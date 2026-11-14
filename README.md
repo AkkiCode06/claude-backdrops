@@ -4,7 +4,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.5.0-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.6.0-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-theming%20kit-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
 [![Palettes](https://img.shields.io/badge/palettes-23-b532dc?style=for-the-badge)](#palettes)
 [![License: MIT](https://img.shields.io/badge/license-MIT-1fd1a5?style=for-the-badge)](LICENSE)
@@ -13,7 +13,7 @@
 **The open-source theming kit for Claude Code.**<br>
 Theme Claude Code without writing a mod: **pick** a palette, **describe** a look, or **paste** some colors.
 
-[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [**Theme guide**](docs/making-themes.md) · [**Share your theme**](#community-themes) · [Roadmap](#roadmap) · [Privacy](#privacy)
+[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [Styles](#styles) · [Reactive](#reactive) · [Modes](#modes) · [**Theme guide**](docs/making-themes.md) · [**Kit reference**](docs/kit.md) · [**Share your theme**](#community-themes) · [Roadmap](#roadmap) · [Privacy](#privacy)
 
 </div>
 
@@ -33,7 +33,14 @@ Claude Code can now load theme mods, but making one yourself means writing a hoo
 | Work out readable text and panel colors yourself | Panels, text and accents are derived from your colors automatically |
 | Each theme lives on one machine | Share yours with a PR; it ships to everyone, credited to you |
 
-**It's a kit:** themes are plain JSON files you can export, import and share (`/backdrop export`, or drop a file into `~/.claude/backdrop/themes/`), and background styles are built from simple blocks: `k.sky()`, `k.stars()`, `k.waves()`, `k.grid()`… with no SVG or animation code. It ships with four styles (**Gradient, Starfield, Waves, Synthwave**) and a [step-by-step guide](docs/making-themes.md).
+**What's in the kit:**
+
+- 🧱 **A block library** for building backgrounds: `k.sky()`, `k.stars()`, `k.aurora()`, `k.codeRain()`, `k.skyline()` and more. A whole new style is about 10 lines, with no SVG or animation code. ([Reference](docs/kit.md))
+- 🎬 **11 styles** built with it: Gradient, Starfield, Waves, Synthwave, Aurora, Rain, Snow, Code rain, Lava lamp, Geometric and Pixel city
+- 🧑‍💻 **Reacts to Claude:** glows while it thinks, shimmers while it works, flashes and notifies you when it's done, and warns you as you near your usage limit
+- 🎛️ **Modes:** light, high contrast, low power, time of day and per-project themes
+- 📦 **Themes as files:** export, import, one-line share codes, and a community folder
+- 🛠️ **Tools:** `new-style` and `new-theme` scaffolds, a browser preview, checkers that run in CI, and a JSON schema for theme files
 
 It's also a **base to build on**: fork it, add palettes or whole new background styles, and send them back. See [Share your theme](#community-themes) and the [Roadmap](#roadmap).
 
@@ -68,8 +75,10 @@ Start a new Code session: the background appears and a short animated tour opens
 | --- | --- |
 | Open the picker | `/backdrop`, or *"change my background"* |
 | Switch palette | `/backdrop ocean`, click one in the picker, or *"make it synthwave"* |
-| Switch style | `/backdrop style starfield` (gradient, starfield, waves, synthwave), or the **Style** row in the picker |
-| Share a theme | `/backdrop export` saves a `.json` file; `/backdrop import <file or JSON>` loads one |
+| Switch style | `/backdrop style aurora` (gradient, starfield, waves, synthwave, aurora, rain, snow, code-rain, lava-lamp, geometric, city), or the **Style** row in the picker |
+| Modes | `/backdrop light` · `dark` · `contrast` · `lowpower` · `timeofday` · `perproject` (add `no-` to turn one off), or the **Modes** row |
+| Reactive layer | `/backdrop no-reactive` · `no-meter` · `no-alerts` to turn parts off, or the **Reactive** row |
+| Share a theme | `/backdrop share` copies a one-line code; `/backdrop export` saves a `.json` file; `/backdrop import <code, file or JSON>` loads one |
 | Pause or resume motion | `/backdrop still` · `/backdrop move` · `/backdrop auto` |
 | Watch the tour | `/backdrop tour`, or *"how does this work?"* |
 | See what's available | *"what backgrounds are there?"* |
@@ -116,6 +125,48 @@ Each palette recolors the background *and* the app's panels, text and accent col
 
 <br>
 
+<a name="styles"></a>
+<img src="assets/banners/styles.svg" alt="Background styles" width="100%">
+
+<img src="assets/styles.svg" alt="All 11 background styles" width="100%">
+
+Every style works with every palette and theme. Switch with `/backdrop style <id>` or the **Style** row. A theme can pick the style it was made for. Want a new one? Run `node --experimental-strip-types scripts/new-style.ts <id>` and see the [kit reference](docs/kit.md).
+
+<br>
+
+<a name="reactive"></a>
+<img src="assets/banners/reactive.svg" alt="Reacts to Claude" width="100%">
+
+For the coders: the backdrop shows what Claude is doing, on top of any style.
+
+| When | You see |
+| --- | --- |
+| Claude is **thinking** | A soft glow breathing along the bottom |
+| Claude is **running tools** | A brighter glow, with a shimmer sweeping the bottom edge |
+| Claude is **done** | One bright flash, plus a desktop notification if the turn took over 20 seconds |
+| Something **failed** | A red pulse |
+| Your **5-hour usage** climbs | A thin bar along the bottom edge, green → amber → red. The edges warm at 80% and pulse at 95%, and you get a heads-up toast at both |
+| The **context window** fills | A hairline above the usage bar, turning amber past 80% |
+
+Turn any part off in the picker's **Reactive** row, or with `/backdrop no-reactive`, `no-meter` or `no-alerts`. The picker also shows a live status line: what Claude is doing, usage % and context %.
+
+<br>
+
+<a name="modes"></a>
+<img src="assets/banners/modes.svg" alt="Modes" width="100%">
+
+| Mode | What it does |
+| --- | --- |
+| **Light** | A light version of every palette and style: pale tinted panels, dark text, pastel glows |
+| **High contrast** | Stronger borders and text, and a darker band behind the chat |
+| **Low power** | Fewer, simpler moving elements, for older Macs |
+| **Time of day** | The palette follows the clock: Midnight at night, Rose at dawn, Ocean in the morning, Lagoon in the afternoon, Sunset at golden hour, Ember at dusk, Galaxy in the evening |
+| **Per project** | Remembers a palette for each folder, so you always know which repo you're in |
+
+All of these sit alongside **Motion** (Auto / Always move / Still) and combine freely. Seasonal packs (Halloween, Winter night, Spring bloom, Summer haze, Northern lights, Terminal green) ship as community themes.
+
+<br>
+
 <a name="performance"></a>
 <img src="assets/banners/performance.svg" alt="Performance and battery" width="100%">
 
@@ -140,8 +191,10 @@ Gradient Flow is a hooks module: it runs inside Claude Code, with no network acc
 | **Sends** | Only when you use **Describe a look**: your words go to Claude (the `haiku` model) through Claude Code's own model connection (`$.model.complete`), with a short instruction asking for 4–5 hex colors. No conversation, files or settings go with them, and it counts toward your usage like any request. Everything else runs locally. |
 | **Credentials** | None. The mod reads, stores and sends no API keys, tokens or passwords. The model call goes through Claude Code's existing sign-in, which the mod never sees. |
 | **Runs** | `/usr/bin/pmset -g batt`, read-only, at startup and every 30 seconds, only to tell whether the Mac is on battery. On other systems the call fails harmlessly. |
-| **Stores** | In Claude Code's per-plugin store on your machine: your palette, motion setting, saved palettes, and whether you've seen the tour. |
-| **Adds** | The `/backdrop` command, and a `background` tool Claude can call. It stands in for no other tool: its hook only receives calls to `mcp__gradient-flow__background`. |
+| **Watches** | For the reactive layer only, and nothing leaves your machine: when a turn starts and ends (and whether it errored), the **names** of tools Claude runs (never their inputs or outputs), and the usage and context percentages Claude Code already shows in its status line. |
+| **Notifies** | When a long turn finishes, a desktop notification through Claude Code's own `$.ui.notify` ("Claude is done"). Turn it off with `/backdrop no-alerts`. |
+| **Stores** | In Claude Code's per-plugin store on your machine: your palette, style, motion and mode settings, saved palettes, whether you've seen the tour, and, with **Per project** on, which palette goes with which folder path. Theme files you export go to `~/.claude/backdrop/themes/`. |
+| **Adds** | The `/backdrop` command, and a `background` tool Claude can call. It stands in for no other tool: the hook that answers it only receives calls to `mcp__gradient-flow__background`. A second `tool.call` hook only watches tool names for the reactive layer: it passes every call through unchanged and returns exactly what the tool returned. |
 
 <details>
 <summary><b>Every hook, and what it does</b></summary>
@@ -154,6 +207,9 @@ Gradient Flow is a hooks module: it runs inside Claude Code, with no network acc
 | `tool.call` (`background` only) | Answers Claude's `background` tool. |
 | `ui.render` (`Backdrop`) | Draws the animated gradient behind the conversation (desktop and mobile only). |
 | `ui.render` (the two panes) | Draws the picker and the welcome tour. |
+| `turn.start` / `turn.complete` | Watch only: mark Claude as thinking, then done or errored, for the reactive glow and the done notification. Main-thread turns only. |
+| `tool.call` (all tools, watching) | Watch only: marks Claude as working while a tool runs. Passes every call through untouched. |
+| `session.measure` | Watch only: reads the usage and context percentages for the usage meter. |
 
 No other plugin calls into it, and it calls into none.
 
@@ -186,33 +242,17 @@ The goal: a **Spicetify-style theme marketplace for Claude Code**, where anyone 
 | --- | --- |
 | ✅ Done | 23 built-in palettes, make-your-own (describe or hex), `/backdrop` picker, battery-aware motion, welcome tour |
 | ✅ Done | **The kit:** theme files with export/import, and the style kit with Gradient, Starfield, Waves and Synthwave |
+| ✅ Done | **11 styles** and the expanded kit (aurora, code rain, blobs, shapes, skyline, vignette, dots), with a preview script, scaffolds and CI checks |
+| ✅ Done | **Reacts to Claude:** thinking/working glow, done flash and notification, error pulse, usage and context meters |
+| ✅ Done | **Modes:** light, high contrast, low power, time of day, per-project themes; seasonal packs |
+| ✅ Done | **Share codes** (`/backdrop share`), a theme JSON schema, and a style gallery |
 | 🚧 Now | **Community themes and styles via pull requests**, credited in the picker |
-| 🔜 Next | **Light mode:** light versions of the palettes, plus themes that follow the system's light/dark setting |
-| 🔜 Next | **High-contrast mode:** stronger borders and text for readability and accessibility |
 | 🔜 Next | **Focus mode:** a calm, near-still backdrop while Claude is working, which wakes up when it's done |
-| 🔜 Next | **Time-of-day mode:** palettes that shift with the clock, from sunrise to midnight |
-| 🔜 Next | **More background styles** beyond gradient glows (see below) |
-| 💭 Later | **Status mode:** the backdrop reacts to what Claude is doing (thinking, running tools, done, error) |
-| 💭 Later | **Per-project themes:** a different palette for each repo, so you always know where you are |
-| 💭 Later | **Seasonal and event packs**, plus a low-power mode tuned for older Macs |
+| 🔜 Next | **Your own image:** any wallpaper or photo behind your chats (waiting on Claude Code support for larger images) |
+| 🔜 Next | **Following the system's light/dark setting** automatically |
 | 💭 Later | A browsable theme gallery with one-click install, plus ratings and tags |
 
-**Background styles on the way.** Gradients are just the first style. Each of these would come with its own palettes and its own motion:
-
-| Style | What it looks like |
-| --- | --- |
-| 🖼️ **Your own image** | Any wallpaper or photo behind your chats, with readable panels on top |
-| ✨ **Starfield** | Slow-drifting stars and the occasional shooting star |
-| 🌊 **Waves** | Layered sine waves rolling along the bottom of the window |
-| 🌧️ **Rain and snow** | Gentle falling particles, with weather packs |
-| 🌌 **Aurora ribbons** | Northern-lights curtains swaying across the top |
-| 🌆 **Synthwave grid** | A retro horizon with a glowing sun and a scrolling grid |
-| 💚 **Code rain** | Falling characters, Matrix-style |
-| 🫧 **Lava lamp** | Big soft blobs that merge and split |
-| 🔷 **Geometric** | Slowly rotating shapes, low-poly fields and dot grids |
-| 👾 **Pixel art** | Tiny animated pixel scenes: a cozy room, a city at night |
-
-Want to build one? Each style is just an animated SVG scene, so a style is a great first PR. [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) to claim one, or suggest your own.
+**More styles wanted.** Still to come: a cozy pixel-art room, fireflies, ocean depths, a lofi café… or whatever you think of. Each style is one small file built from kit blocks, so it makes a great first PR: `node --experimental-strip-types scripts/new-style.ts <id>`, then see the [kit reference](docs/kit.md). [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) to claim one.
 
 <br>
 

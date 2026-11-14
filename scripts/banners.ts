@@ -14,6 +14,9 @@ const I: Record<string, string> = {
   wrench: `<path d="M30 6a10 10 0 0 0-9.4 13.4L7 33a3.5 3.5 0 0 0 5 5l13.6-13.6A10 10 0 0 0 42 16l-6 6-6-6 6-6a10 10 0 0 0-6-4Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>`,
   map: `<path d="M17 8L6 12v28l11-4 14 4 11-4V8l-11 4Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/><path d="M17 8v28M31 12v28" fill="none" stroke="currentColor" stroke-width="3.5"/>`,
   people: `<circle cx="17" cy="17" r="6.5" fill="none" stroke="currentColor" stroke-width="3.5"/><circle cx="33" cy="19" r="5" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M5 40c1-7 6-11 12-11s11 4 12 11" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M29 30c5 0 9 3 10 10" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>`,
+  pulse: `<path d="M4 26h8l4-10 7 20 5-14 3 4h13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  sliders: `<path d="M8 14h20M36 14h4M8 34h6M22 34h18" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="3.5"/><circle cx="18" cy="34" r="4" fill="none" stroke="currentColor" stroke-width="3.5"/>`,
+  layers: `<path d="M24 6L4 16l20 10 20-10Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/><path d="M4 24l20 10 20-10M4 32l20 10 20-10" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>`,
   heart: `<path d="M24 41s-16-9.5-16-21a9 9 0 0 1 16-5.6A9 9 0 0 1 40 20c0 11.5-16 21-16 21Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>`,
 }
 const banners: [string, string, string, string, string][] = [
@@ -24,6 +27,9 @@ const banners: [string, string, string, string, string][] = [
   ['performance', 'battery', 'Performance & battery', 'Moves when plugged in, eases to a stop on battery.', 'mint'],
   ['privacy', 'shield', 'Privacy & permissions', 'What it runs, sends and stores. Short list.', 'midnight'],
   ['troubleshooting', 'wrench', 'Troubleshooting', 'Quick fixes for the usual hiccups.', 'desert'],
+  ['styles', 'layers', 'Background styles', '11 scenes built with the kit, and room for yours.', 'aurora'],
+  ['reactive', 'pulse', 'Reacts to Claude', 'Glows while it thinks, flashes when done, warns near your limit.', 'cyberpunk'],
+  ['modes', 'sliders', 'Modes', 'Light, high contrast, low power, time of day, per project.', 'lavender'],
   ['community', 'people', 'Community themes wanted', 'Made a theme you love? Open a PR and share it.', 'neon-tokyo'],
   ['roadmap', 'map', 'Roadmap', 'Where backdrop is headed, and how to help.', 'galaxy'],
   ['contributing', 'heart', 'Contributing', 'Add a palette, report a bug, share a theme.', 'cherry-blossom'],

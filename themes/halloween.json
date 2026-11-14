@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "halloween",
+  "name": "Halloween",
+  "author": "AkkiCode06",
+  "style": "city",
+  "colors": ["#0d0614", "#3b1257", "#ff7518", "#7cff4f", "#ffb347"]
+}

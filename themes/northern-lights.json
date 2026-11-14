@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "northern-lights",
+  "name": "Northern lights",
+  "author": "AkkiCode06",
+  "style": "aurora",
+  "colors": ["#030a14", "#0b2a3a", "#2bffb0", "#3a7bd5", "#b07cff"]
+}

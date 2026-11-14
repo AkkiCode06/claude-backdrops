@@ -2,12 +2,14 @@ import { atom, read, update } from 'claude-code'
 import type { Register, ThemeSetArgs } from 'claude-code'
 
 import type { Motion, StoredPalette } from '../types'
-import { colorsFor, harmony, paletteFromColors, parseColors, surprise, type Harmony } from './custom'
+import { colorsFor, harmony, lightVariant, paletteFromColors, parseColors, surprise, type Harmony } from './custom'
+import { CALM, type Activity, type SceneState } from './kit'
+import { DEFAULT_SETTINGS, overlay, paletteForHour, SETTING_LABELS, withOverlay, type Settings } from './reactive'
 import { DEFAULT_PALETTE, PALETTES, type Palette } from './palettes'
 import { TOUR_STEPS, TOUR_SVG } from './tour'
 import { phasesAt, SETTLE_S, settledAt, swatch, ZERO, type Mode, type Run } from './scene'
-import { DEFAULT_STYLE, STYLES, styleById } from './styles'
-import { parseTheme, toThemeFile } from './themes'
+import { DEFAULT_STYLE, STYLES, styleById } from './styles/index'
+import { fromShareCode, parseTheme, toShareCode, toThemeFile } from './themes'
 
 // Gradient Flow: animated gradient backgrounds for Claude Code on desktop.
 //
@@ -32,6 +34,8 @@ const customsAtom = atom({ plugin: 'gradient-flow', key: 'customs' } as const, [
 const noticeAtom = atom({ plugin: 'gradient-flow', key: 'notice' } as const, '')
 const draftAtom = atom({ plugin: 'gradient-flow', key: 'draft' } as const, [] as string[])
 const busyAtom = atom({ plugin: 'gradient-flow', key: 'busy' } as const, false)
+const settingsAtom = atom({ plugin: 'gradient-flow', key: 'settings' } as const, DEFAULT_SETTINGS as Settings, { shape: 'settings-1' })
+const sceneAtom = atom({ plugin: 'gradient-flow', key: 'scene' } as const, CALM as SceneState)
 const styleAtom = atom({ plugin: 'gradient-flow', key: 'style' } as const, DEFAULT_STYLE)
 const communityAtom = atom({ plugin: 'gradient-flow', key: 'community' } as const, [] as StoredPalette[], { shape: 'themes-1' })
 const filesAtom = atom({ plugin: 'gradient-flow', key: 'files' } as const, [] as StoredPalette[], { shape: 'themes-1' })
@@ -71,14 +75,22 @@ type Controller = {
   // The kit: background styles, theme files, export and import.
   setStyle: (id: string) => Promise<string>
   exportTheme: () => Promise<string>
+  shareCode: () => Promise<string>
   importTheme: (input: string) => Promise<string>
   reloadThemes: () => Promise<string>
+  // Modes and the reactive layer.
+  setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<string>
+  setActivity: (a: Activity) => void
+  measured: (usage: number | undefined, context: number | undefined) => void
+  turnEnded: (reason: string, ms: number) => void
 }
 let ctl: Controller | undefined
 
 // The scene the backdrop draws. Every change gets a fresh name so the surface
 // draws the new picture.
 let sceneSource = ''
+// When the current main-thread turn started (ms), for done notifications.
+let turnStartedAt = 0
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
@@ -95,6 +107,23 @@ export const register: Register = on => {
     await update($, paletteAtom, () => paletteId)
     await update($, motionAtom, () => motion)
     await update($, styleAtom, () => styleId)
+
+    const storedSettings = await $.store.get('settings')
+    let settings: Settings = { ...DEFAULT_SETTINGS, ...(storedSettings && typeof storedSettings === 'object' ? (storedSettings as Partial<Settings>) : {}) }
+    await update($, settingsAtom, () => settings)
+    // Per-project themes: a palette remembered for each folder.
+    const cwd = e.cwd
+    const storedProjects = await $.store.get('projects')
+    let projects: Record<string, string> = storedProjects && typeof storedProjects === 'object' ? (storedProjects as Record<string, string>) : {}
+    if (settings.perProject && projects[cwd]) {
+      paletteId = projects[cwd] as string
+      await update($, paletteAtom, () => paletteId)
+    }
+    // What Claude is doing, and how much usage is left.
+    let scene: SceneState = { ...CALM, lowPower: settings.lowPower }
+    let pendingDraw: { cancel: () => void } | undefined
+    let idleLater: { cancel: () => void } | undefined
+    const warned = new Set<number>()
 
     // Theme files: community ones shipped in this repo's themes/ folder, and the
     // person's own in ~/.claude/backdrop/themes. A file that doesn't parse is
@@ -114,7 +143,7 @@ export const register: Register = on => {
       }
       const out: StoredPalette[] = []
       for (const entry of entries) {
-        if (entry.kind !== 'file' || !entry.name.endsWith('.json')) continue
+        if (entry.kind !== 'file' || !entry.name.endsWith('.json') || entry.name === 'schema.json') continue
         try {
           const text = String(await $.fs.read(`${dir}/${entry.name}`))
           const parsed = parseTheme(text)
@@ -166,14 +195,16 @@ export const register: Register = on => {
     let preview: Palette | undefined
 
     const draw = async (mode: Mode) => {
-      const palette = preview ?? find(paletteId, all())
+      const chosen = preview ?? find(paletteId, all())
+      const palette = settings.appearance === 'light' ? lightVariant(chosen) : chosen
       counter += 1
       const st = styleById(styleId)
       // Only the gradient style eases to a stop; the others go straight to still.
       const m: Mode = st.id !== 'gradient' && mode.kind === 'settle' ? { kind: 'still', at: restAt } : mode
-      sceneSource = st.build(palette, m)
+      const state: SceneState = { ...scene, lowPower: settings.lowPower }
+      sceneSource = withOverlay(st.build(palette, m, state), overlay(palette, state, m.kind === 'flow', settings))
       const look: ThemeSetArgs = {
-        colors: colorsFor(palette).theme,
+        colors: colorsFor(palette, { contrast: settings.contrast }).theme,
         backdrop: { scene: `gf-${counter}`, glass: { blur: 0, tint: palette.surfaces[0], opacity: 0.45 } },
       }
       const set = await $.theme.set(look)
@@ -262,6 +293,10 @@ export const register: Register = on => {
         paletteId = palette.id
         await update($, paletteAtom, () => paletteId)
         await $.store.set('palette', paletteId)
+        if (settings.perProject) {
+          projects = { ...projects, [cwd]: paletteId }
+          await $.store.set('projects', projects)
+        }
         // A theme can ask for the style it was made for.
         if (palette.style && STYLES.some(st => st.id === palette.style) && palette.style !== styleId) {
           styleId = palette.style
@@ -394,8 +429,8 @@ export const register: Register = on => {
       },
       importTheme: async input => {
         const raw = input.trim()
-        let text = raw
-        if (!raw.startsWith('{')) {
+        let text = fromShareCode(raw) ?? raw
+        if (!text.startsWith('{')) {
           try {
             text = String(await $.fs.read(raw.replace(/^~(?=\/)/, home ?? '~')))
           } catch {
@@ -413,14 +448,98 @@ export const register: Register = on => {
         await update($, filesAtom, () => fileThemes)
         return `Imported ${parsed.palette.name}. ${await controller.choose(parsed.palette.id)}`
       },
+      shareCode: async () => {
+        const palette = preview ?? find(paletteId, all())
+        const code = toShareCode({ ...palette, style: styleId })
+        try {
+          await $.ui.copy({ text: code })
+          await update($, noticeAtom, () => `Copied a share code for ${palette.name}. Paste it anywhere; others import it with /backdrop import <code>.`)
+        } catch {
+          await update($, noticeAtom, () => `Share code: ${code}`)
+        }
+        return `Share code for ${palette.name} (anyone can paste it into /backdrop import):\n${code}`
+      },
       reloadThemes: async () => {
         await loadThemes()
         const note = `Loaded ${community.length} community and ${fileThemes.length} of your theme files.` + (problems.length ? ` Skipped: ${problems.join('; ')}` : '')
         await update($, noticeAtom, () => note)
         return note
       },
+      setSetting: async (key, value) => {
+        settings = { ...settings, [key]: value }
+        await update($, settingsAtom, () => settings)
+        await $.store.set('settings', settings)
+        if (key === 'perProject' && value === true) {
+          projects = { ...projects, [cwd]: paletteId }
+          await $.store.set('projects', projects)
+        }
+        if (key === 'autoPalette' && value === 'time') await followClock()
+        else await refresh('palette')
+        const label = SETTING_LABELS[key]
+        const shown = typeof value === 'boolean' ? (value ? 'on' : 'off') : String(value)
+        return `${label}: ${shown}.`
+      },
+      setActivity: a => {
+        if (a === scene.activity) return
+        scene = { ...scene, activity: a }
+        void update($, sceneAtom, () => scene)
+        if (!settings.activity) return
+        idleLater?.cancel()
+        idleLater = undefined
+        if (a === 'done' || a === 'error') {
+          pendingDraw?.cancel()
+          pendingDraw = undefined
+          void refresh('palette')
+          // Back to calm once the flash has played.
+          idleLater = $.clock.after(a === 'done' ? 4000 : 6000, () => {
+            idleLater = undefined
+            controller.setActivity('idle')
+          })
+          return
+        }
+        // Tool calls come in bursts; redraw at most every 0.7 s.
+        if (pendingDraw) return
+        pendingDraw = $.clock.after(700, () => {
+          pendingDraw = undefined
+          void refresh('palette')
+        })
+      },
+      measured: (usage, context) => {
+        const u = usage ?? scene.usage
+        const c = context ?? scene.context
+        // Redraw only when the bar would visibly change (2% steps).
+        const changed = Math.round(u * 50) !== Math.round(scene.usage * 50) || Math.round(c * 50) !== Math.round(scene.context * 50)
+        scene = { ...scene, usage: u, context: c }
+        void update($, sceneAtom, () => scene)
+        for (const mark of [0.8, 0.95]) {
+          if (u >= mark && !warned.has(mark)) {
+            warned.add(mark)
+            $.ui.toast(`Heads up: ${Math.round(u * 100)}% of your 5-hour usage window is used.`)
+          }
+        }
+        if (changed && settings.usageMeter && !pendingDraw) {
+          pendingDraw = $.clock.after(700, () => {
+            pendingDraw = undefined
+            void refresh('palette')
+          })
+        }
+      },
+      turnEnded: (reason, ms) => {
+        controller.setActivity(reason === 'error' ? 'error' : reason === 'aborted' ? 'idle' : 'done')
+        if (settings.notify && reason === 'answer' && ms >= 20_000) {
+          void $.ui.notify(`Finished after ${Math.round(ms / 1000)}s.`, { title: 'Claude is done', key: 'turn-done' })
+        }
+      },
     }
     ctl = controller
+
+    // Time-of-day mode: pick the palette for this hour.
+    const followClock = async () => {
+      if (settings.autoPalette !== 'time') return
+      const hour = new Date(await $.clock.now()).getHours()
+      const target = paletteForHour(hour).palette
+      if (target !== paletteId) await controller.choose(target)
+    }
 
     // Registering is best-effort: if a name is refused (say a built-in command
     // takes it), the background still draws.
@@ -428,7 +547,7 @@ export const register: Register = on => {
       await $.command.register({
         name: 'backdrop',
         description: 'Pick an animated background, or make your own from colors',
-        argumentHint: '[theme | style <id> | #hex … | export | import <json|path> | still | move | auto | tour]',
+        argumentHint: '[theme | style <id> | #hex … | light | contrast | lowpower | timeofday | perproject | export | import | tour]',
       })
     } catch (err) {
       $.ui.toast(`Gradient Flow: /backdrop is unavailable (${String(err)}); ask Claude to change the background instead.`)
@@ -445,11 +564,14 @@ export const register: Register = on => {
         "(for 'cozy forest': deep greens and a warm amber) and switches to it; 'motion' sets auto (moves only when plugged in), on or off; " +
         "'remove' deletes one they made; 'list' says what exists (presets, community themes, the user's own, styles); 'tour' opens an animated walkthrough of how it all works (use it when they ask how it works or just installed it); " +
         "'style' switches the background style (" + STYLES.map(st => `${st.id}: ${st.description}`).join('; ') + "); " +
-        "'export' saves the current theme as a shareable JSON file; 'import' loads a theme from pasted JSON or a file path. Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
+        "'export' saves the current theme as a shareable JSON file; 'import' loads a theme from pasted JSON, a file path or a share code (bd1.…); 'share' makes a one-line share code for the current theme; " +
+        "'setting' turns modes on or off: appearance (dark/light), contrast, lowPower, autoPalette (time of day), perProject, and the reactive layer: activity (glow while Claude thinks or works), usageMeter (usage bar and warm edges near the limit), notify (desktop alert when a long turn finishes). Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
       inputSchema: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['open_picker', 'tour', 'set', 'create', 'motion', 'remove', 'list', 'style', 'export', 'import'] },
+          action: { type: 'string', enum: ['open_picker', 'tour', 'set', 'create', 'motion', 'remove', 'list', 'style', 'export', 'import', 'setting', 'share'] },
+          setting: { type: 'string', enum: ['appearance', 'contrast', 'lowPower', 'autoPalette', 'perProject', 'activity', 'usageMeter', 'notify'], description: "For 'setting'." },
+          value: { type: 'string', description: "For 'setting': 'on' or 'off'; for appearance 'dark' or 'light'; for autoPalette 'off' or 'time'." },
           style: { type: 'string', enum: STYLES.map(st => st.id), description: "For 'style'." },
           theme: { type: 'string', description: "For 'import': the theme's JSON, or a path to a .json theme file." },
           palette: { type: 'string', description: "A palette id, for 'set' and 'remove'." },
@@ -477,9 +599,12 @@ export const register: Register = on => {
       if (opened.isPlaced) await $.store.set('welcomed', true)
     }
 
-    // Follow the power source.
+    await followClock()
+
+    // Follow the power source (and the clock, in time-of-day mode).
     $.clock.every(30_000, () => {
       void (async () => {
+        await followClock()
         const now = await onBatteryNow()
         if (now === onBattery) return
         onBattery = now
@@ -489,6 +614,49 @@ export const register: Register = on => {
       })()
     })
 
+    return next(e)
+  })
+
+  // ── The reactive layer: these hooks only watch. Each one passes the event on
+  //    unchanged and returns exactly what the rest of the chain returns.
+
+  // A turn starts: Claude is thinking. (Subagents' turns are ignored.)
+  on('turn.start', async ($, e, next) => {
+    if (e.agentId === undefined) {
+      turnStartedAt = await $.clock.now()
+      ctl?.setActivity('thinking')
+    }
+    return next(e)
+  })
+
+  // A tool runs: Claude is working, then back to thinking.
+  on('tool.call', async ($, e, next) => {
+    const watched = String(e.tool) !== TOOL && (e as { agentId?: string }).agentId === undefined
+    if (watched) ctl?.setActivity('working')
+    try {
+      return await next(e)
+    } finally {
+      if (watched) ctl?.setActivity('thinking')
+    }
+  }).catch(($, e, next) => next(e))
+
+  // A turn ends: flash done (or error), and maybe send a notification.
+  on('turn.complete', async ($, e, next) => {
+    const result = await next(e)
+    if ((e as { agentId?: string }).agentId === undefined) {
+      const ms = turnStartedAt ? (await $.clock.now()) - turnStartedAt : 0
+      turnStartedAt = 0
+      ctl?.turnEnded(e.reason, ms)
+    }
+    return result
+  })
+
+  // Usage and context, as the status line sees them.
+  on('session.measure', async ($, e, next) => {
+    const fiveHour = e.rateLimits.find(r => r.kind === 'five_hour') ?? e.rateLimits[0]
+    const usage = fiveHour ? fiveHour.percentUsed / 100 : undefined
+    const context = typeof e.context.percent === 'number' ? e.context.percent / 100 : e.context.tokens ? e.context.tokens / e.context.window : undefined
+    ctl?.measured(usage, context)
     return next(e)
   })
 
@@ -531,7 +699,28 @@ export const register: Register = on => {
       await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
       return { text: 'Opened the Gradient Flow tour.' }
     }
+    const setting: Record<string, () => Promise<string>> = {
+      light: () => ctl!.setSetting('appearance', 'light'),
+      dark: () => ctl!.setSetting('appearance', 'dark'),
+      contrast: () => ctl!.setSetting('contrast', true),
+      'no-contrast': () => ctl!.setSetting('contrast', false),
+      lowpower: () => ctl!.setSetting('lowPower', true),
+      'no-lowpower': () => ctl!.setSetting('lowPower', false),
+      timeofday: () => ctl!.setSetting('autoPalette', 'time'),
+      'no-timeofday': () => ctl!.setSetting('autoPalette', 'off'),
+      perproject: () => ctl!.setSetting('perProject', true),
+      'no-perproject': () => ctl!.setSetting('perProject', false),
+      reactive: () => ctl!.setSetting('activity', true),
+      'no-reactive': () => ctl!.setSetting('activity', false),
+      meter: () => ctl!.setSetting('usageMeter', true),
+      'no-meter': () => ctl!.setSetting('usageMeter', false),
+      alerts: () => ctl!.setSetting('notify', true),
+      'no-alerts': () => ctl!.setSetting('notify', false),
+    }
+    const toggleWord = setting[word.replace(/\s+/g, '')]
+    if (toggleWord) return { text: await toggleWord() }
     if (word === 'export') return { text: await ctl.exportTheme() }
+    if (word === 'share') return { text: await ctl.shareCode() }
     if (word === 'reload') return { text: await ctl.reloadThemes() }
     if (word.startsWith('import ')) return { text: await ctl.importTheme(args.slice(7)) }
     if (word.startsWith('style')) {
@@ -557,7 +746,7 @@ export const register: Register = on => {
     if (String(e.tool) !== TOOL) return next(e)
     const answer = async (): Promise<string> => {
       if (ctl === undefined) return 'Gradient Flow is still starting; try again in a moment.'
-      const input = e as unknown as { action?: string; palette?: string; name?: string; colors?: string[]; motion?: Motion; style?: string; theme?: string }
+      const input = e as unknown as { action?: string; palette?: string; name?: string; colors?: string[]; motion?: Motion; style?: string; theme?: string; setting?: keyof Settings; value?: string }
       switch (input.action) {
         case 'open_picker':
           await $.ui.open({ id: PANE, title: PANE_TITLE })
@@ -579,8 +768,17 @@ export const register: Register = on => {
           return ctl.setStyle(input.style ?? '')
         case 'export':
           return ctl.exportTheme()
+        case 'share':
+          return ctl.shareCode()
         case 'import':
           return ctl.importTheme(input.theme ?? '')
+        case 'setting': {
+          const key = input.setting
+          if (key === undefined || !(key in DEFAULT_SETTINGS)) return `Give a setting: ${Object.keys(DEFAULT_SETTINGS).join(', ')}.`
+          const v = (input.value ?? '').toLowerCase()
+          const value = key === 'appearance' ? (v === 'light' ? 'light' : 'dark') : key === 'autoPalette' ? (v === 'time' || v === 'on' ? 'time' : 'off') : v !== 'off' && v !== 'false'
+          return ctl.setSetting(key, value as never)
+        }
         default:
           return ctl.describe()
       }
@@ -646,6 +844,16 @@ export const register: Register = on => {
     const styleId = await read($, styleAtom)
     const community = await read($, communityAtom)
     const files = await read($, filesAtom)
+    const settings = await read($, settingsAtom)
+    const live = await read($, sceneAtom)
+    const toggle = (key: keyof Settings, active: boolean, flip: () => void) => (
+      <Button key={`set-${key}`} label={SETTING_LABELS[key]} variant={active ? 'primary' : 'secondary'} onPress={flip} />
+    )
+    const statusLine = [
+      live.activity === 'idle' ? 'Claude is idle' : `Claude is ${live.activity}`,
+      live.usage > 0 ? `${Math.round(live.usage * 100)}% of 5-hour usage` : '',
+      live.context > 0 ? `context ${Math.round(live.context * 100)}% full` : '',
+    ].filter(Boolean).join(' · ')
 
     const row = (p: Palette, removable: boolean) => (
       <Box key={`row-${p.id}`} flexDirection="row" alignItems="center" gap={1}>
@@ -706,6 +914,21 @@ export const register: Register = on => {
             />
           ))}
         </Box>
+        <Text bold>Modes</Text>
+        <Box flexDirection="row" flexWrap="wrap" gap={1}>
+          {toggle('appearance', settings.appearance === 'light', () => void ctl?.setSetting('appearance', settings.appearance === 'light' ? 'dark' : 'light'))}
+          {toggle('contrast', settings.contrast, () => void ctl?.setSetting('contrast', !settings.contrast))}
+          {toggle('lowPower', settings.lowPower, () => void ctl?.setSetting('lowPower', !settings.lowPower))}
+          {toggle('autoPalette', settings.autoPalette === 'time', () => void ctl?.setSetting('autoPalette', settings.autoPalette === 'time' ? 'off' : 'time'))}
+          {toggle('perProject', settings.perProject, () => void ctl?.setSetting('perProject', !settings.perProject))}
+        </Box>
+        <Text bold>Reactive</Text>
+        <Box flexDirection="row" flexWrap="wrap" gap={1}>
+          {toggle('activity', settings.activity, () => void ctl?.setSetting('activity', !settings.activity))}
+          {toggle('usageMeter', settings.usageMeter, () => void ctl?.setSetting('usageMeter', !settings.usageMeter))}
+          {toggle('notify', settings.notify, () => void ctl?.setSetting('notify', !settings.notify))}
+        </Box>
+        <Text dimColor>{statusLine}</Text>
         <Text bold>Make your own</Text>
         <Box flexDirection="column" gap={1}>
           <Text dimColor>Describe a look, and Claude picks the colors</Text>
@@ -756,11 +979,12 @@ export const register: Register = on => {
         <Text bold>Share</Text>
         <Box flexDirection="row" gap={1}>
           <Button key="export" label="Export current theme" onPress={() => void ctl?.exportTheme()} />
+          <Button key="share" label="Copy share code" onPress={() => void ctl?.shareCode()} />
           <Button key="reload" label="Reload theme files" plain onPress={() => void ctl?.reloadThemes()} />
         </Box>
         <Input
           key="import"
-          placeholder="Import: paste a theme's JSON, or a path to a .json file"
+          placeholder="Import: a share code (bd1.…), a theme's JSON, or a path to a .json file"
           submitLabel="Import"
           onSubmit={value => void ctl?.importTheme(value)}
         />

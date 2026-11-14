@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "summer-haze",
+  "name": "Summer haze",
+  "author": "AkkiCode06",
+  "style": "waves",
+  "colors": ["#1f0b1e", "#e0457b", "#ff8a3d", "#ffd36b", "#00b4b4"]
+}

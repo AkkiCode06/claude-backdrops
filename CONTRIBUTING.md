@@ -22,6 +22,17 @@ The step-by-step version, with color recipes and how to build new background sty
 4. Open a pull request with the **theme** template (add `?template=theme.md` to the new-PR URL) and **a screenshot or short clip** of it running. A few pictures are plenty.
 5. Optional: refresh the gallery image with `node --experimental-strip-types scripts/gallery.ts assets`.
 
+## Add a background style
+
+```bash
+node --experimental-strip-types scripts/new-style.ts <id> "Name"   # scaffold and register
+node --experimental-strip-types scripts/preview.ts <id>            # look at it in a browser
+node --experimental-strip-types scripts/check-styles.ts            # check it with every palette
+node --experimental-strip-types scripts/style-gallery.ts           # optional: refresh assets/styles.svg
+```
+
+Every block and option is in [docs/kit.md](docs/kit.md). Open a PR with a short clip. It's labeled `style` automatically.
+
 ## Labels
 
 PRs are labeled automatically by the files they change:
@@ -29,7 +40,7 @@ PRs are labeled automatically by the files they change:
 | Label | When |
 | --- | --- |
 | `theme` | touches `themes/` or `hooks/palettes.ts` |
-| `style` | touches `hooks/styles.ts` or `hooks/kit.ts` (a new background style) |
+| `style` | touches `hooks/styles/` or `hooks/kit.ts` (a new background style or block) |
 | `needs screenshot` | a theme PR with no image or clip yet (it comes off once you add one) |
 | `core` | the mod's code (`hooks/*.ts`, `types/`, `plugin.json`) |
 | `tests` | test files |

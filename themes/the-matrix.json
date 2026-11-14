@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "the-matrix",
+  "name": "Terminal green",
+  "author": "AkkiCode06",
+  "style": "code-rain",
+  "colors": ["#000a03", "#003b13", "#39ff6a", "#00a83a", "#b6ffbf"]
+}

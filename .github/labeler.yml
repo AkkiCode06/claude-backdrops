@@ -7,12 +7,14 @@ theme:
 style:
   - changed-files:
       - any-glob-to-any-file:
-          - hooks/styles.ts
+          - hooks/styles/**
           - hooks/kit.ts
 core:
   - changed-files:
       - any-glob-to-any-file:
           - hooks/register.tsx
+          - hooks/reactive.ts
+          - hooks/themes.ts
           - hooks/scene.ts
           - hooks/custom.ts
           - hooks/tour.ts

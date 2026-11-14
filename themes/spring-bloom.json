@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "spring-bloom",
+  "name": "Spring bloom",
+  "author": "AkkiCode06",
+  "style": "lava-lamp",
+  "colors": ["#1a0f1c", "#6a3d6e", "#ff8fb8", "#9be8a8", "#fff0a8"]
+}

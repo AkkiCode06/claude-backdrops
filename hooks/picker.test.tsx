@@ -1,8 +1,11 @@
 import { expect, test } from 'claude-code/testing'
 import { colorsFor } from './custom'
 import { PALETTES } from './palettes'
-import { STYLES } from './styles'
+import { STYLES } from './styles/index'
 import { parseTheme, toThemeFile } from './themes'
+import { lightVariant } from './custom'
+import { CALM } from './kit'
+import { DEFAULT_SETTINGS, overlay, paletteForHour, usageColor } from './reactive'
 
 const PANE = {
   plugin: 'gradient-flow',
@@ -210,4 +213,47 @@ test('theme files: the quick and full shapes parse, broken ones say why', () => 
   expect('palette' in full && full.palette.name).toBe('Ember')
   const bad = parseTheme('{"id":"Bad Id","name":"x","colors":["#fff"]}')
   expect('error' in bad && bad.error).toMatch(/id/)
+})
+
+test('the reactive layer draws each activity, the usage bar and warm edges', () => {
+  const p = PALETTES[0]!
+  const on = { ...DEFAULT_SETTINGS }
+  expect(overlay(p, CALM, true, on)).toBe('')
+  expect(overlay(p, { ...CALM, activity: 'thinking' }, true, on)).toMatch(/rxGlow/)
+  expect(overlay(p, { ...CALM, activity: 'working' }, true, on)).toMatch(/rxShimmer/)
+  expect(overlay(p, { ...CALM, activity: 'working' }, false, on)).not.toMatch(/<animate/)
+  expect(overlay(p, { ...CALM, activity: 'error' }, true, on)).toMatch(p.roles.danger)
+  expect(overlay(p, { ...CALM, usage: 0.5 }, true, on)).toMatch(/width="800"/)
+  expect(overlay(p, { ...CALM, usage: 0.97 }, true, on)).toMatch(/rxEdge/)
+  expect(overlay(p, { ...CALM, activity: 'thinking' }, true, { ...on, activity: false })).toBe('')
+  expect(usageColor(p, 0.2)).toBe(p.roles.success)
+  expect(usageColor(p, 1)).toBe(p.roles.danger)
+})
+
+test('time of day picks a palette for every hour', () => {
+  for (let hour = 0; hour < 24; hour++) {
+    const slot = paletteForHour(hour)
+    expect(PALETTES.some(p => p.id === slot.palette)).toBe(true)
+  }
+  expect(paletteForHour(2).palette).toBe('midnight')
+  expect(paletteForHour(17).palette).toBe('sunset')
+})
+
+test('light and high-contrast versions of every palette still paint', () => {
+  for (const p of PALETTES) for (const pal of [p, lightVariant(p)]) for (const contrast of [false, true]) {
+    const blocking = colorsFor(pal, { contrast }).problems.filter(l => l.startsWith("Desktop won't paint"))
+    expect({ id: p.id, light: pal !== p, contrast, blocking }).toEqual({ id: p.id, light: pal !== p, contrast, blocking: [] })
+  }
+})
+
+test('mode and reactive toggles in the picker are saved', async ($, on) => {
+  const stored: Record<string, unknown> = {}
+  engine(on, { stored })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'set-appearance' })
+  expect((stored.settings as { appearance: string }).appearance).toBe('light')
+  await ui.press({ key: 'set-usageMeter' })
+  expect((stored.settings as { usageMeter: boolean }).usageMeter).toBe(false)
+  await ui.unmount()
 })

@@ -15,6 +15,10 @@ The Gradient Flow mod draws an animated gradient behind Claude Code on desktop a
 - **"Stop the animation" / "it's draining my battery"**: `motion` `off`. **"Make it move again"**: `on`. **Only when plugged in**: `auto` (the default).
 - **"How does this work?" / they just installed it**: `tour` opens the animated walkthrough.
 - **"What backgrounds are there?"**: `list`, then answer in a sentence or two.
+- **A different kind of background** ("make it a starry night", "rain", "matrix", "synthwave", "lava lamp"): `style` with one of: `gradient`, `starfield`, `waves`, `synthwave`, `aurora`, `rain`, `snow`, `code-rain`, `lava-lamp`, `geometric`, `city`. You can combine it with `set` or `create` for the colors.
+- **Modes**: `setting` with `appearance` (`light`/`dark`), `contrast`, `lowPower`, `autoPalette` (`time` follows the clock), `perProject` (`on`/`off`).
+- **The reactive layer** (it glows while you think and work, flashes when done, and shows a usage bar that warns near the limit): `setting` with `activity`, `usageMeter` or `notify`, `on`/`off`. Suggest `usageMeter` when they worry about hitting limits, and `notify` when they step away during long tasks.
+- **"Share my theme"**: `share` gives a one-line code; `export` writes a file. Someone else's code or JSON: `import`.
 - **"Delete the one I made"**: `remove` with its id (from `list`). Presets can't be removed.
 
 After the tool answers, tell them in one short line what changed. Don't repeat the tool's whole output.

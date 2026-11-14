@@ -1,5 +1,23 @@
 export type Motion = 'auto' | 'on' | 'off'
 
+export type BackdropSettings = {
+  appearance: 'dark' | 'light'
+  contrast: boolean
+  lowPower: boolean
+  autoPalette: 'off' | 'time'
+  perProject: boolean
+  activity: boolean
+  usageMeter: boolean
+  notify: boolean
+}
+
+export type BackdropScene = {
+  activity: 'idle' | 'thinking' | 'working' | 'done' | 'error'
+  usage: number
+  context: number
+  lowPower: boolean
+}
+
 // A palette as it is stored: the picker's presets and the ones people make.
 export type StoredPalette = {
   id: string
@@ -34,6 +52,10 @@ declare module 'claude-code' {
       // ~/.claude/backdrop/themes/*.json (the user's own).
       community: Shaped<StoredPalette[]>
       files: Shaped<StoredPalette[]>
+      // Modes and reactive-layer switches.
+      settings: Shaped<BackdropSettings>
+      // What Claude is doing and how much usage is left, for the picker to show.
+      scene: BackdropScene
     }
   }
 }

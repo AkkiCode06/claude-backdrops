@@ -1,7 +1,7 @@
 {
   "name": "gradient-flow",
-  "version": "0.5.0",
-  "description": "The open-source theming kit for Claude Code: theme the desktop app without writing a mod. Pick from 23 animated palettes, describe a look, or paste colors. Run /backdrop.",
+  "version": "0.6.0",
+  "description": "The open-source theming kit for Claude Code: 11 animated background styles, 23 palettes, a block library for building your own, and a backdrop that reacts to Claude (thinking, done, usage). Run /backdrop.",
   "types": "./types/index.d.ts",
   "license": "MIT",
   "author": {

@@ -110,3 +110,29 @@ export const toThemeFile = (p: Palette): ThemeFile => ({
   text: { ...p.text },
   roles: { ...p.roles },
 })
+
+// Share codes: a whole theme as one short line of text, for pasting into a chat.
+// "bd1." + base64url of the theme's JSON (colors only when it can be, to stay short).
+const toB64Url = (text: string) => btoa(String.fromCharCode(...new TextEncoder().encode(text))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+const fromB64Url = (code: string) => {
+  const b64 = code.replace(/-/g, '+').replace(/_/g, '/')
+  const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4))
+  return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)))
+}
+
+export const toShareCode = (p: Palette): string => {
+  const file = toThemeFile(p)
+  const { format: _f, ...rest } = file
+  return 'bd1.' + toB64Url(JSON.stringify(rest))
+}
+
+// Returns the theme JSON inside a share code, or undefined when it isn't one.
+export const fromShareCode = (code: string): string | undefined => {
+  const m = code.trim().match(/^bd1\.([A-Za-z0-9_-]+)$/)
+  if (!m) return undefined
+  try {
+    return fromB64Url(m[1] as string)
+  } catch {
+    return undefined
+  }
+}

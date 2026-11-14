@@ -1,8 +1,9 @@
 {
+  "$schema": "./schema.json",
   "format": 1,
   "id": "rainy-tokyo",
   "name": "Rainy Tokyo",
   "author": "AkkiCode06",
-  "style": "starfield",
+  "style": "rain",
   "colors": ["#05061a", "#2b2d7a", "#ff2e88", "#00c2ff", "#ffd1f0"]
 }

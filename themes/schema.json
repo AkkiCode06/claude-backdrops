@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AkkiCode06/claude-backdrops/blob/main/themes/schema.json",
+  "title": "Backdrop theme",
+  "description": "A theme for Backdrop, the Claude Code theming kit. Either give 1-5 `colors` (Backdrop works out the rest) or every color field.",
+  "type": "object",
+  "required": ["id", "name"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,47}$", "description": "Lowercase, digits and hyphens. Also the file name: <id>.json" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "author": { "type": "string", "maxLength": 39, "description": "Your GitHub handle, credited in the picker" },
+    "style": { "enum": ["gradient", "starfield", "waves", "synthwave", "aurora", "rain", "snow", "code-rain", "lava-lamp", "geometric", "city"], "description": "The background style this theme looks best in" },
+    "colors": { "type": "array", "minItems": 1, "maxItems": 5, "items": { "$ref": "#/$defs/hex" }, "description": "Quick format: 1-5 colors, deepest first" },
+    "base": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/hex" } },
+    "glows": { "type": "array", "minItems": 5, "maxItems": 5, "items": { "$ref": "#/$defs/hex" } },
+    "surfaces": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "$ref": "#/$defs/hex" } },
+    "text": { "type": "object", "required": ["primary", "secondary", "muted"], "properties": { "primary": { "$ref": "#/$defs/hex" }, "secondary": { "$ref": "#/$defs/hex" }, "muted": { "$ref": "#/$defs/hex" } } },
+    "roles": { "type": "object", "required": ["accent", "danger", "success", "warning", "pro"], "properties": { "accent": { "$ref": "#/$defs/hex" }, "danger": { "$ref": "#/$defs/hex" }, "success": { "$ref": "#/$defs/hex" }, "warning": { "$ref": "#/$defs/hex" }, "pro": { "$ref": "#/$defs/hex" } } }
+  },
+  "oneOf": [
+    { "required": ["colors"] },
+    { "required": ["base", "glows", "surfaces", "text", "roles"] }
+  ],
+  "$defs": { "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" } }
+}

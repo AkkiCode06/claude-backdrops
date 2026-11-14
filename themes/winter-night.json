@@ -1,0 +1,8 @@
+{
+  "$schema": "./schema.json",
+  "id": "winter-night",
+  "name": "Winter night",
+  "author": "AkkiCode06",
+  "style": "snow",
+  "colors": ["#06111f", "#1b4965", "#5fa8d3", "#bee9f5", "#e8f6ff"]
+}

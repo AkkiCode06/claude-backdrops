@@ -81,26 +81,48 @@ export const paletteFromColors = (name: string, colors: readonly string[], id: s
   return { error: "Those colors don't leave enough contrast for text. Try a darker or more varied set." }
 }
 
-export const colorsFor = (p: Palette) => {
+// The app's colors for a palette. A palette marked `light` (see lightVariant)
+// paints Claude Code's light mode; `contrast` asks for stronger borders and text.
+export const colorsFor = (p: Palette & { light?: boolean }, options: { contrast?: boolean } = {}) => {
   const [s0, s1, s2, s3] = p.surfaces
-  return makeColors({
-    label: p.name,
-    only: 'dark',
-    roles: p.roles,
-    dark: {
-      gray: {
-        anchors: {
-          'surface-0': s0,
-          'surface-1': s1,
-          'surface-2': s2,
-          'surface-3': s3,
-          'text-primary': p.text.primary,
-          'text-secondary': p.text.secondary,
-          'text-muted': p.text.muted,
-        },
+  const mode = p.light ? 'light' : 'dark'
+  const half = {
+    gray: {
+      anchors: {
+        'surface-0': s0,
+        'surface-1': s1,
+        'surface-2': s2,
+        'surface-3': s3,
+        'text-primary': p.text.primary,
+        'text-secondary': p.text.secondary,
+        'text-muted': p.text.muted,
       },
     },
+  }
+  return makeColors({
+    label: p.name,
+    only: mode,
+    roles: p.roles,
+    ...(options.contrast ? { contrast: 'more' as const } : {}),
+    ...(mode === 'light' ? { light: half } : { dark: half }),
   })
+}
+
+// A light version of any palette: pale tinted surfaces, dark text, pastel glows.
+export const lightVariant = (p: Palette): Palette & { light: true } => {
+  const hue = toHsl(p.surfaces[0]).h
+  const sat = Math.min(Math.max(toHsl(p.surfaces[0]).s, 0.2), 0.45)
+  const pastel = (c: string) => { const x = toHsl(c); return toHex({ h: x.h, s: Math.min(x.s, 0.75), l: 0.72 }) }
+  const soft = (c: string, l: number) => { const x = toHsl(c); return toHex({ h: x.h, s: Math.min(x.s, 0.55) * 0.6, l }) }
+  return {
+    ...p,
+    light: true,
+    base: [soft(p.base[0], 0.9), soft(p.base[1], 0.86), soft(p.base[2], 0.82)] as unknown as Palette['base'],
+    glows: p.glows.map(pastel) as unknown as Palette['glows'],
+    // In light mode surface-0 is the darkest and surface-2 and surface-3 match.
+    surfaces: [toHex({ h: hue, s: sat, l: 0.93 }), toHex({ h: hue, s: sat, l: 0.96 }), toHex({ h: hue, s: sat * 0.6, l: 0.985 }), toHex({ h: hue, s: sat * 0.6, l: 0.985 })] as unknown as Palette['surfaces'],
+    text: { primary: toHex({ h: hue, s: 0.3, l: 0.12 }), secondary: toHex({ h: hue, s: 0.2, l: 0.28 }), muted: toHex({ h: hue, s: 0.15, l: 0.38 }) },
+  }
 }
 
 const paints = (p: Palette) => {
