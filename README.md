@@ -168,7 +168,14 @@ The goal: a **Spicetify-style theme marketplace for Claude Code**, where anyone 
 | ✅ Done | 23 built-in palettes, make-your-own (describe or hex), `/backdrop` picker, battery-aware motion, welcome tour |
 | 🚧 Now | **Community themes via pull requests**, credited in the picker |
 | 🔜 Next | Themes as standalone files you can share with a link, and import/export from the picker |
-| 🔜 Next | Light-mode themes, more scene styles beyond glows (waves, grain, starfields) |
+| 🔜 Next | **Light mode:** light versions of the palettes, plus themes that follow the system's light/dark setting |
+| 🔜 Next | **High-contrast mode:** stronger borders and text for readability and accessibility |
+| 🔜 Next | **Focus mode:** a calm, near-still backdrop while Claude is working, which wakes up when it's done |
+| 🔜 Next | **Time-of-day mode:** palettes that shift with the clock, from sunrise to midnight |
+| 🔜 Next | More scene styles beyond glows: waves, grain, starfields |
+| 💭 Later | **Status mode:** the backdrop reacts to what Claude is doing (thinking, running tools, done, error) |
+| 💭 Later | **Per-project themes:** a different palette for each repo, so you always know where you are |
+| 💭 Later | **Seasonal and event packs**, plus a low-power mode tuned for older Macs |
 | 💭 Later | A browsable theme gallery with one-click install, plus ratings and tags |
 
 Got an idea or want to help build any of it? [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) and let's talk.
