@@ -1,8 +1,8 @@
 # Contributing to Gradient Flow
 
-Thanks for wanting to make Claude Code prettier. Palettes are the easiest way in.
+Thanks for wanting to make Claude Code prettier. Theming in Claude Code is brand new, and the goal is a shared library of community themes, so **themes are the most wanted contribution.**
 
-## Add a palette
+## Share a theme
 
 1. Try your colors live first: `/backdrop`, then **Make your own**, paste the hex codes and **Save**.
 2. Copy an entry in [`hooks/palettes.ts`](hooks/palettes.ts) and fill in:
@@ -10,13 +10,31 @@ Thanks for wanting to make Claude Code prettier. Palettes are the easiest way in
    - `glows`: five colors for the moving blobs (largest first)
    - `surfaces`: four dark panel colors, darkest first and close together
    - `text` and `roles`: keep `text.primary` near white, and keep `danger` red, `success` green and `warning` amber
+   - `author`: your GitHub handle, so the picker shows "by @you"
 3. Run the checks:
    ```bash
    claude plugin validate .
    claude plugin test .
    ```
    The palette test checks that Claude Code will paint every palette.
-4. Open a pull request with a screenshot. It doesn't need to be fancy.
+4. Open a pull request with the **theme** template (add `?template=theme.md` to the new-PR URL) and **a screenshot or short clip** of it running. A few pictures are plenty.
+5. Optional: refresh the gallery image with `node --experimental-strip-types scripts/gallery.ts assets`.
+
+## Labels
+
+PRs are labeled automatically by the files they change:
+
+| Label | When |
+| --- | --- |
+| `theme` | touches `hooks/palettes.ts` |
+| `needs screenshot` | a theme PR with no image or clip yet (it comes off once you add one) |
+| `core` | the mod's code (`hooks/*.ts`, `types/`, `plugin.json`) |
+| `tests` | test files |
+| `docs` | Markdown and the bundled skill |
+| `assets` | banners, GIFs and `scripts/` |
+| `github` | templates and workflows |
+
+Issues use `bug`, `enhancement`, `palette` (theme ideas), `roadmap` and `good first issue`.
 
 ## Run it from your clone
 

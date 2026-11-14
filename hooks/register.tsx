@@ -522,6 +522,7 @@ export const register: Register = on => {
           variant={p.id === current ? 'primary' : 'secondary'}
           onPress={() => void ctl?.choose(p.id)}
         />
+        {p.author ? <Text dimColor>by @{p.author}</Text> : null}
         {removable ? <Button key={`del-${p.id}`} label="Remove" plain onPress={() => void ctl?.remove(p.id)} /> : null}
       </Box>
     )

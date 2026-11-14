@@ -2,12 +2,15 @@
 // and five glowing blobs) and the app's own colors (surfaces, text, roles), so
 // panels and the prompt box match the background.
 //
-// To add one: copy an entry, give it a new `id`, and run `claude plugin validate`.
+// To add one: copy an entry, give it a new `id`, add `author: '<your GitHub handle>'`,
+// and run `claude plugin validate .` and `claude plugin test .`. See CONTRIBUTING.md.
 // Keep surfaces dark and close together, and `text-muted` readable on them.
 
 export type Palette = {
   id: string
   name: string
+  // GitHub handle of whoever made it (community palettes), shown in the picker.
+  author?: string
   // Base gradient, bottom-left to top-right.
   base: readonly [string, string, string]
   // The five glows, largest-and-centre first.

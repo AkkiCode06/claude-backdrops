@@ -1,0 +1,30 @@
+name: Theme PR checklist
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+    paths:
+      - hooks/palettes.ts
+
+permissions:
+  pull-requests: write
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask for a screenshot if the PR has none
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            const body = pr.body || ''
+            const hasMedia = /!\[[^\]]*\]\(|<img |<video |\.(png|jpe?g|gif|mp4|mov|webm)\b|user-attachments/i.test(body)
+            const label = 'needs screenshot'
+            const labels = pr.labels.map(l => l.name)
+            if (!hasMedia && !labels.includes(label)) {
+              await github.rest.issues.addLabels({ ...context.repo, issue_number: pr.number, labels: [label] })
+              await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number,
+                body: "Thanks for the theme! 🎨 Could you add a screenshot or a short clip of it running in Claude Code? Drag it straight into the PR description. Then this label comes off." })
+            } else if (hasMedia && labels.includes(label)) {
+              await github.rest.issues.removeLabel({ ...context.repo, issue_number: pr.number, name: label })
+            }

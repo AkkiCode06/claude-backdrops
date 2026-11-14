@@ -4,6 +4,7 @@ export type Motion = 'auto' | 'on' | 'off'
 export type StoredPalette = {
   id: string
   name: string
+  author?: string
   base: readonly [string, string, string]
   glows: readonly [string, string, string, string, string]
   surfaces: readonly [string, string, string, string]

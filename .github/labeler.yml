@@ -1,0 +1,30 @@
+# Labels added to pull requests by the files they change (actions/labeler v5).
+theme:
+  - changed-files:
+      - any-glob-to-any-file: hooks/palettes.ts
+core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - hooks/register.tsx
+          - hooks/scene.ts
+          - hooks/custom.ts
+          - hooks/tour.ts
+          - hooks/hooks.json
+          - types/**
+          - .claude-plugin/plugin.json
+tests:
+  - changed-files:
+      - any-glob-to-any-file: "**/*.test.ts*"
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - skills/**
+assets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - assets/**
+          - scripts/**
+github:
+  - changed-files:
+      - any-glob-to-any-file: .github/**

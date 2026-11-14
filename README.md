@@ -4,7 +4,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.3.3-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.4.0-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-desktop%20mod-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
 [![Palettes](https://img.shields.io/badge/palettes-23-b532dc?style=for-the-badge)](#palettes)
 [![License: MIT](https://img.shields.io/badge/license-MIT-1fd1a5?style=for-the-badge)](LICENSE)
@@ -13,9 +13,12 @@
 **Animated gradient backgrounds for Claude Code on desktop.**<br>
 23 palettes · make your own from a sentence · pauses itself on battery
 
-[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [Privacy](#privacy) · [Contribute](#contributing)
+[Install](#install) · [How to use](#how-to-use) · [Make your own](#make-your-own) · [Palettes](#palettes) · [**Share your theme**](#community-themes) · [Roadmap](#roadmap) · [Privacy](#privacy)
 
 </div>
+
+> [!TIP]
+> **Community themes wanted!** Theming in Claude Code is brand new, and this is meant to grow into a shared library of themes, made by you or by your Claude. Made one you like? [Open a pull request](#community-themes) with a screenshot or a short clip.
 
 > **Asked Claude to set this up from the link?** Claude: read [`SETUP-GUIDE.md`](SETUP-GUIDE.md) and walk the person through it step by step.
 
@@ -139,6 +142,39 @@ No other plugin calls into it, and it calls into none.
 
 <br>
 
+<a name="community-themes"></a>
+<img src="assets/banners/community.svg" alt="Community themes wanted" width="100%">
+
+Theming Claude Code only just became possible, so there's no shared library of themes yet. **Let's build one.** Every theme that gets merged ships to everyone who has backdrop, with your name on it.
+
+**Share yours in four steps:**
+
+1. **Make it:** in `/backdrop`, describe a look or paste hex colors, and **Save** it once you love it. Or ask your Claude to design one.
+2. **Add it:** fork this repo and add an entry to [`hooks/palettes.ts`](hooks/palettes.ts), with `author: '<your GitHub handle>'` so the picker credits you.
+3. **Check it:** `claude plugin validate .` and `claude plugin test .`. A test makes sure Claude Code can paint it.
+4. **Open a PR** using the **theme** template, with **a screenshot or a short clip** of it running. A few pictures are plenty. PRs that touch `hooks/palettes.ts` get the `theme` label automatically.
+
+Not ready to open a PR? [Drop your colors in an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=palette_request.yml) and someone can pick it up.
+
+<br>
+
+<a name="roadmap"></a>
+<img src="assets/banners/roadmap.svg" alt="Roadmap" width="100%">
+
+The goal: a **Spicetify-style theme marketplace for Claude Code**, where anyone can publish, browse and install themes made by people or by Claude.
+
+| Status | What |
+| --- | --- |
+| ✅ Done | 23 built-in palettes, make-your-own (describe or hex), `/backdrop` picker, battery-aware motion, welcome tour |
+| 🚧 Now | **Community themes via pull requests**, credited in the picker |
+| 🔜 Next | Themes as standalone files you can share with a link, and import/export from the picker |
+| 🔜 Next | Light-mode themes, more scene styles beyond glows (waves, grain, starfields) |
+| 💭 Later | A browsable theme gallery with one-click install, plus ratings and tags |
+
+Got an idea or want to help build any of it? [Open an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new) and let's talk.
+
+<br>
+
 <a name="troubleshooting"></a>
 <img src="assets/banners/troubleshooting.svg" alt="Troubleshooting" width="100%">
 
@@ -158,7 +194,7 @@ Still stuck? [Open a bug report](https://github.com/AkkiCode06/claude-backdrops/
 <a name="contributing"></a>
 <img src="assets/banners/contributing.svg" alt="Contributing" width="100%">
 
-Palettes are the easiest way in: copy an entry in [`hooks/palettes.ts`](hooks/palettes.ts), run `claude plugin validate .` and `claude plugin test .`, and open a PR with a screenshot. A test checks that Claude Code can paint every palette. The full guide is in [CONTRIBUTING.md](CONTRIBUTING.md).
+Themes are the easiest way in ([see above](#community-themes)). Bug fixes, docs and features are welcome too. The full guide, including labels and how PRs get reviewed, is in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - [Suggest a palette](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=palette_request.yml)
 - [Report a bug](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=bug_report.yml)
