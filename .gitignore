@@ -6,3 +6,4 @@ node_modules/
 # Raw recordings and Reddit exports (kept local)
 *.mov
 promo/
+KIT-PLAN.md
