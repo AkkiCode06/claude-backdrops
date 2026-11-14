@@ -4,6 +4,14 @@ Animated gradient backgrounds for **Claude Code on desktop**. Pick from 23 palet
 
 > **Asked Claude to set this up from the link?** Claude: read [`SETUP-GUIDE.md`](SETUP-GUIDE.md) and walk the person through it step by step.
 
+![Switching palettes in the /backdrop picker](assets/picker.gif)
+
+## See it
+
+| Make your own from a description | The built-in welcome tour |
+| --- | --- |
+| ![Describing "sunset in LA", previewing it, and saving it](assets/sunset-in-la.gif) | ![The animated welcome tour](assets/tour.gif) |
+
 ## What you get
 
 - **23 palettes:** Ember, Sunset, Violet, Cyberpunk, Ocean, Aurora, Mint lime, Rose gold, Midnight, Synthwave, Lagoon, Forest, Lavender, Citrus, Neon Tokyo, Galaxy, Cherry blossom, Arctic, Desert, Autumn, Matrix, Coffee and Graphite. Each one recolors the background and the app's panels, text and accent color to match.

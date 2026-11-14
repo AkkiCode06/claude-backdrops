@@ -2,3 +2,7 @@
 *.log
 .claude-plugin/types/
 node_modules/
+
+# Raw recordings and Reddit exports (kept local)
+*.mov
+promo/
