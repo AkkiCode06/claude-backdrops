@@ -8,8 +8,8 @@ Backdrop gives you four ways to make a theme, from zero code to building a whole
 | --- | --- | --- |
 | [1. In the picker](#level-1-in-the-picker-no-code) | Nothing, just Backdrop installed | 1 minute |
 | [2. Ask Claude](#level-2-ask-claude) | A sentence | 1 minute |
-| [3. Add it to the kit](#level-3-add-a-palette-to-the-kit) | A text editor | 10 minutes |
-| [4. A new background style](#level-4-build-a-new-background-style) | Some SVG and TypeScript | an afternoon |
+| [3. Share it as a theme file](#level-3-share-it-as-a-theme-file) | A JSON file | 5 minutes |
+| [4. A new background style](#level-4-build-a-new-background-style) | The Backdrop kit, ~15 lines of TypeScript | an hour |
 
 > New here? [Install Backdrop first](../README.md#install). Every level below works in the Claude Code desktop app, in dark mode.
 
@@ -61,7 +61,27 @@ Claude picks the colors, previews them and saves the palette.
 
 ---
 
-## Level 3: add a palette to the kit
+## Level 3: share it as a theme file
+
+Themes are just JSON files. No code.
+
+1. **Export:** in the picker, **Share → Export current theme**, or `/backdrop export`. It's saved to `~/.claude/backdrop/themes/<id>.json`.
+2. **Use someone else's:** drop their `.json` into `~/.claude/backdrop/themes/` and press **Reload theme files**, or paste it into **Import**, or run `/backdrop import <path or JSON>`.
+3. **Share with everyone:** copy your file into this repo's [`themes/`](../themes) folder and open a PR with a screenshot. A check validates it automatically, and once it's merged it shows under **Community**, credited to you.
+
+The quick format only needs your colors:
+
+```json
+{ "id": "rainy-tokyo", "name": "Rainy Tokyo", "author": "your-github-handle",
+  "style": "starfield", "colors": ["#05061a", "#ff2e88", "#00c2ff"] }
+```
+
+Check it locally with `node --experimental-strip-types scripts/check-themes.ts`.
+
+### Or set every color yourself
+
+The full format (what export writes) has the same fields as a built-in palette, explained below. Built-in palettes live in [`hooks/palettes.ts`](../hooks/palettes.ts).
+
 
 Want your theme built in for everyone, credited to you? Add it to [`hooks/palettes.ts`](../hooks/palettes.ts) and open a pull request.
 
@@ -127,6 +147,41 @@ Your PR is labeled `theme` automatically. Once it's merged, everyone gets it on 
 ## Level 4: build a new background style
 
 Gradients are just the first style. Starfields, waves, synthwave grids, code rain and pixel art are all on the [roadmap](../README.md#roadmap), and each one is a great first big PR.
+
+### The Backdrop kit
+
+You don't write SVG or animation code. You stack building blocks from [`hooks/kit.ts`](../hooks/kit.ts):
+
+```ts
+// hooks/styles.ts
+const aurora = style({
+  id: 'aurora-sky',
+  name: 'Aurora sky',
+  description: 'northern lights over a starry night',
+  layers: (k, p) => [
+    k.sky([p.base[1], p.base[0]]),
+    k.stars({ count: 80 }),
+    k.glow({ at: [0.3, 0.2], size: 0.8, color: p.glows[2], orbit: { rx: 200, ry: 40 } }),
+    k.glow({ at: [0.7, 0.25], size: 0.7, color: p.glows[4], orbit: { rx: 160, ry: 30 } }),
+  ],
+})
+// then add it to STYLES
+```
+
+| Block | Draws |
+| --- | --- |
+| `k.sky(colors)` | A gradient filling the canvas |
+| `k.glow({ at, size, color, opacity, orbit })` | A soft round glow, optionally drifting |
+| `k.glows({ count })` | Several drifting palette glows (the gradient look) |
+| `k.stars({ count, size, colors, twinkle, drift })` | A twinkling, drifting star field |
+| `k.shootingStar({ every, from, to })` | A streak across the sky |
+| `k.waves({ count, colors, height, amplitude })` | Layered waves rolling along the bottom |
+| `k.particles({ count, color, speed, direction, streak })` | Rain, snow, embers, petals |
+| `k.grid({ color, horizon })` | A scrolling retro perspective grid |
+| `k.sun({ at, size, colors, stripes })` | A sun or moon, with optional retro stripes |
+| `k.raw(svg, defs)` | Anything else, in canvas pixels |
+
+Positions are fractions of the canvas (`[0, 0]` top-left, `[1, 1]` bottom-right), and every option has a default. The kit handles animation, still mode on battery, unique ids, the size limit and the reading column. `k.random()` gives seeded randomness, so a scene is the same every time. See `starfield`, `waves` and `synthwave` in [`hooks/styles.ts`](../hooks/styles.ts) for real examples. A test checks that every style draws every palette.
 
 ### How a background works
 

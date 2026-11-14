@@ -11,6 +11,8 @@ export type Palette = {
   name: string
   // GitHub handle of whoever made it (community palettes), shown in the picker.
   author?: string
+  // The background style it looks best in (see hooks/styles.ts). Absent: the current one.
+  style?: string
   // Base gradient, bottom-left to top-right.
   base: readonly [string, string, string]
   // The five glows, largest-and-centre first.

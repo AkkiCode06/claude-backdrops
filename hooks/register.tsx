@@ -5,7 +5,9 @@ import type { Motion, StoredPalette } from '../types'
 import { colorsFor, harmony, paletteFromColors, parseColors, surprise, type Harmony } from './custom'
 import { DEFAULT_PALETTE, PALETTES, type Palette } from './palettes'
 import { TOUR_STEPS, TOUR_SVG } from './tour'
-import { buildScene, phasesAt, SETTLE_S, settledAt, swatch, ZERO, type Mode, type Run } from './scene'
+import { phasesAt, SETTLE_S, settledAt, swatch, ZERO, type Mode, type Run } from './scene'
+import { DEFAULT_STYLE, STYLES, styleById } from './styles'
+import { parseTheme, toThemeFile } from './themes'
 
 // Gradient Flow: animated gradient backgrounds for Claude Code on desktop.
 //
@@ -30,9 +32,12 @@ const customsAtom = atom({ plugin: 'gradient-flow', key: 'customs' } as const, [
 const noticeAtom = atom({ plugin: 'gradient-flow', key: 'notice' } as const, '')
 const draftAtom = atom({ plugin: 'gradient-flow', key: 'draft' } as const, [] as string[])
 const busyAtom = atom({ plugin: 'gradient-flow', key: 'busy' } as const, false)
+const styleAtom = atom({ plugin: 'gradient-flow', key: 'style' } as const, DEFAULT_STYLE)
+const communityAtom = atom({ plugin: 'gradient-flow', key: 'community' } as const, [] as StoredPalette[], { shape: 'themes-1' })
+const filesAtom = atom({ plugin: 'gradient-flow', key: 'files' } as const, [] as StoredPalette[], { shape: 'themes-1' })
 
-const find = (id: string, customs: readonly StoredPalette[]): Palette =>
-  customs.find(p => p.id === id) ??
+const find = (id: string, extra: readonly StoredPalette[]): Palette =>
+  extra.find(p => p.id === id) ??
   PALETTES.find(p => p.id === id) ??
   PALETTES.find(p => p.id === DEFAULT_PALETTE) ??
   (PALETTES[0] as Palette)
@@ -63,6 +68,11 @@ type Controller = {
   describeLook: (text: string) => Promise<string>
   save: (name: string) => Promise<string>
   discard: () => Promise<void>
+  // The kit: background styles, theme files, export and import.
+  setStyle: (id: string) => Promise<string>
+  exportTheme: () => Promise<string>
+  importTheme: (input: string) => Promise<string>
+  reloadThemes: () => Promise<string>
 }
 let ctl: Controller | undefined
 
@@ -79,9 +89,53 @@ export const register: Register = on => {
     let customs: StoredPalette[] = Array.isArray(storedCustoms) ? (storedCustoms as StoredPalette[]) : []
     let paletteId = typeof storedPalette === 'string' ? storedPalette : DEFAULT_PALETTE
     let motion: Motion = MOTIONS.includes(storedMotion as Motion) ? (storedMotion as Motion) : 'auto'
+    const storedStyle = await $.store.get('style')
+    let styleId = typeof storedStyle === 'string' && STYLES.some(st => st.id === storedStyle) ? storedStyle : DEFAULT_STYLE
     await update($, customsAtom, () => customs)
     await update($, paletteAtom, () => paletteId)
     await update($, motionAtom, () => motion)
+    await update($, styleAtom, () => styleId)
+
+    // Theme files: community ones shipped in this repo's themes/ folder, and the
+    // person's own in ~/.claude/backdrop/themes. A file that doesn't parse is
+    // skipped with a note saying why.
+    const home = await $.env.get('HOME')
+    const userDir = home ? `${home}/.claude/backdrop/themes` : undefined
+    let community: StoredPalette[] = []
+    let fileThemes: StoredPalette[] = []
+    const problems: string[] = []
+    const loadDir = async (dir: string | undefined): Promise<StoredPalette[]> => {
+      if (dir === undefined) return []
+      let entries: { name: string; kind: string }[] = []
+      try {
+        entries = await $.fs.list(dir)
+      } catch {
+        return []
+      }
+      const out: StoredPalette[] = []
+      for (const entry of entries) {
+        if (entry.kind !== 'file' || !entry.name.endsWith('.json')) continue
+        try {
+          const text = String(await $.fs.read(`${dir}/${entry.name}`))
+          const parsed = parseTheme(text)
+          if ('error' in parsed) problems.push(`${entry.name}: ${parsed.error}`)
+          else out.push(parsed.palette)
+        } catch (err) {
+          problems.push(`${entry.name}: ${String(err)}`)
+        }
+      }
+      return out
+    }
+    const loadThemes = async () => {
+      problems.length = 0
+      community = await loadDir(`${$.plugin.root}/themes`)
+      fileThemes = await loadDir(userDir)
+      await update($, communityAtom, () => community)
+      await update($, filesAtom, () => fileThemes)
+    }
+    await loadThemes()
+    if (problems.length > 0) $.ui.toast(`Backdrop skipped ${problems.length} theme file(s): ${problems.slice(0, 2).join('; ')}`)
+    const all = () => [...customs, ...fileThemes, ...community]
 
     // `pmset -g batt` says "Now drawing from 'Battery Power'" on battery. Anything
     // else (a desktop Mac, another OS, an error) counts as plugged in.
@@ -112,9 +166,12 @@ export const register: Register = on => {
     let preview: Palette | undefined
 
     const draw = async (mode: Mode) => {
-      const palette = preview ?? find(paletteId, customs)
+      const palette = preview ?? find(paletteId, all())
       counter += 1
-      sceneSource = buildScene(palette, mode)
+      const st = styleById(styleId)
+      // Only the gradient style eases to a stop; the others go straight to still.
+      const m: Mode = st.id !== 'gradient' && mode.kind === 'settle' ? { kind: 'still', at: restAt } : mode
+      sceneSource = st.build(palette, m)
       const look: ThemeSetArgs = {
         colors: colorsFor(palette).theme,
         backdrop: { scene: `gf-${counter}`, glass: { blur: 0, tint: palette.surfaces[0], opacity: 0.45 } },
@@ -194,19 +251,25 @@ export const register: Register = on => {
     }
 
     const controller: Controller = {
-      isKnown: id => customs.some(p => p.id === id) || PALETTES.some(p => p.id === id),
+      isKnown: id => all().some(p => p.id === id) || PALETTES.some(p => p.id === id),
       choose: async id => {
         preview = undefined
         if (draft.length > 0) {
           draft = []
           await update($, draftAtom, () => [])
         }
-        const palette = find(id, customs)
+        const palette = find(id, all())
         paletteId = palette.id
         await update($, paletteAtom, () => paletteId)
         await $.store.set('palette', paletteId)
+        // A theme can ask for the style it was made for.
+        if (palette.style && STYLES.some(st => st.id === palette.style) && palette.style !== styleId) {
+          styleId = palette.style
+          await update($, styleAtom, () => styleId)
+          await $.store.set('style', styleId)
+        }
         await refresh('palette')
-        return `Background set to ${palette.name}.`
+        return `Background set to ${palette.name}${palette.author ? ` by @${palette.author}` : ''} (${styleById(styleId).name} style).`
       },
       setMotion: async m => {
         motion = m
@@ -241,10 +304,12 @@ export const register: Register = on => {
         return `Removed ${gone.name}.`
       },
       describe: async () => {
-        const current = find(paletteId, customs)
-        const presets = PALETTES.map(p => `${p.id} (${p.name})`).join(', ')
-        const mine = customs.length ? customs.map(p => `${p.id} (${p.name})`).join(', ') : 'none yet'
-        return `Current: ${current.name}; motion: ${MOTION_LABEL[motion]}${onBattery ? ' (on battery now)' : ''}.\nPresets: ${presets}.\nMade by the user: ${mine}.`
+        const current = find(paletteId, all())
+        const list = (ps: readonly StoredPalette[]) => (ps.length ? ps.map(p => `${p.id} (${p.name}${p.author ? ` by @${p.author}` : ''})`).join(', ') : 'none yet')
+        return `Current: ${current.name}; style: ${styleById(styleId).name}; motion: ${MOTION_LABEL[motion]}${onBattery ? ' (on battery now)' : ''}.` +
+          `\nStyles: ${STYLES.map(st => `${st.id} (${st.description})`).join('; ')}.` +
+          `\nPresets: ${list(PALETTES)}.\nCommunity themes: ${list(community)}.\nThe user's own: ${list([...customs, ...fileThemes])}.` +
+          (userDir ? `\nTheme files folder: ${userDir}` : '')
       },
       addColor: async hex => {
         const [color] = parseColors(hex)
@@ -308,6 +373,52 @@ export const register: Register = on => {
         await update($, noticeAtom, () => '')
         await refresh('palette')
       },
+      setStyle: async id => {
+        const st = STYLES.find(x => x.id === id.toLowerCase())
+        if (st === undefined) return `No style called "${id}". Styles: ${STYLES.map(x => x.id).join(', ')}.`
+        styleId = st.id
+        await update($, styleAtom, () => styleId)
+        await $.store.set('style', styleId)
+        await refresh('palette')
+        return `Style set to ${st.name}: ${st.description}.`
+      },
+      exportTheme: async () => {
+        const palette = preview ?? find(paletteId, all())
+        const file = { ...toThemeFile(palette), style: styleId }
+        const json = JSON.stringify(file, null, 2)
+        if (userDir === undefined) return json
+        const path = `${userDir}/${file.id}.json`
+        await $.fs.write(path, json + '\n')
+        await update($, noticeAtom, () => `Exported to ${path}`)
+        return `Saved ${palette.name} as ${path}. Share that file, or open a PR adding it to the themes/ folder.\n\n${json}`
+      },
+      importTheme: async input => {
+        const raw = input.trim()
+        let text = raw
+        if (!raw.startsWith('{')) {
+          try {
+            text = String(await $.fs.read(raw.replace(/^~(?=\/)/, home ?? '~')))
+          } catch {
+            return `Couldn't read "${raw}". Paste the theme's JSON, or give the path to a .json file.`
+          }
+        }
+        const parsed = parseTheme(text)
+        if ('error' in parsed) {
+          await update($, noticeAtom, () => `That theme has a problem: ${parsed.error}`)
+          return `That theme has a problem: ${parsed.error}`
+        }
+        if (userDir !== undefined) await $.fs.write(`${userDir}/${parsed.palette.id}.json`, JSON.stringify(toThemeFile(parsed.palette), null, 2) + '\n')
+        await loadThemes()
+        if (!fileThemes.some(p => p.id === parsed.palette.id)) fileThemes = [...fileThemes, parsed.palette]
+        await update($, filesAtom, () => fileThemes)
+        return `Imported ${parsed.palette.name}. ${await controller.choose(parsed.palette.id)}`
+      },
+      reloadThemes: async () => {
+        await loadThemes()
+        const note = `Loaded ${community.length} community and ${fileThemes.length} of your theme files.` + (problems.length ? ` Skipped: ${problems.join('; ')}` : '')
+        await update($, noticeAtom, () => note)
+        return note
+      },
     }
     ctl = controller
 
@@ -317,7 +428,7 @@ export const register: Register = on => {
       await $.command.register({
         name: 'backdrop',
         description: 'Pick an animated background, or make your own from colors',
-        argumentHint: '[palette | #hex #hex … | still | move | auto | tour]',
+        argumentHint: '[theme | style <id> | #hex … | export | import <json|path> | still | move | auto | tour]',
       })
     } catch (err) {
       $.ui.toast(`Gradient Flow: /backdrop is unavailable (${String(err)}); ask Claude to change the background instead.`)
@@ -332,11 +443,15 @@ export const register: Register = on => {
         "'open_picker' opens the picker pane so they choose themselves (use it when they just say 'change my background'); " +
         "'set' switches to a palette by id; 'create' makes a palette from 1-5 hex colors you pick to match what they describe " +
         "(for 'cozy forest': deep greens and a warm amber) and switches to it; 'motion' sets auto (moves only when plugged in), on or off; " +
-        "'remove' deletes one they made; 'list' says what exists; 'tour' opens an animated walkthrough of how it all works (use it when they ask how it works or just installed it). Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
+        "'remove' deletes one they made; 'list' says what exists (presets, community themes, the user's own, styles); 'tour' opens an animated walkthrough of how it all works (use it when they ask how it works or just installed it); " +
+        "'style' switches the background style (" + STYLES.map(st => `${st.id}: ${st.description}`).join('; ') + "); " +
+        "'export' saves the current theme as a shareable JSON file; 'import' loads a theme from pasted JSON or a file path. Presets: " + PALETTES.map(p => p.id).join(', ') + '.',
       inputSchema: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['open_picker', 'tour', 'set', 'create', 'motion', 'remove', 'list'] },
+          action: { type: 'string', enum: ['open_picker', 'tour', 'set', 'create', 'motion', 'remove', 'list', 'style', 'export', 'import'] },
+          style: { type: 'string', enum: STYLES.map(st => st.id), description: "For 'style'." },
+          theme: { type: 'string', description: "For 'import': the theme's JSON, or a path to a .json theme file." },
           palette: { type: 'string', description: "A palette id, for 'set' and 'remove'." },
           name: { type: 'string', description: "A short name for a new palette, for 'create'." },
           colors: { type: 'array', items: { type: 'string' }, description: "1-5 hex colors like '#1b4332', for 'create'." },
@@ -401,6 +516,8 @@ export const register: Register = on => {
   // /backdrop ocean      -> switch palette
   // /backdrop #a #b #c   -> make a palette from those colors
   // /backdrop still | move | auto
+  // /backdrop style starfield
+  // /backdrop export | import <json or path> | reload
   on('command.run', { command: 'backdrop' }, async ($, e) => {
     const args = e.args.trim()
     if (ctl === undefined) return { text: 'Gradient Flow is still starting; try again in a moment.' }
@@ -414,11 +531,19 @@ export const register: Register = on => {
       await $.ui.open({ id: TOUR_PANE, title: TOUR_TITLE })
       return { text: 'Opened the Gradient Flow tour.' }
     }
+    if (word === 'export') return { text: await ctl.exportTheme() }
+    if (word === 'reload') return { text: await ctl.reloadThemes() }
+    if (word.startsWith('import ')) return { text: await ctl.importTheme(args.slice(7)) }
+    if (word.startsWith('style')) {
+      const which = args.slice(5).trim()
+      return { text: which ? await ctl.setStyle(which) : `Styles: ${STYLES.map(st => `${st.id} (${st.description})`).join('; ')}. Use /backdrop style <id>.` }
+    }
     if (word === 'still' || word === 'off') return { text: await ctl.setMotion('off') }
     if (word === 'move' || word === 'on') return { text: await ctl.setMotion('on') }
     if (word === 'auto') return { text: await ctl.setMotion('auto') }
     if (parseColors(args).length >= 2) return { text: await ctl.create('', args) }
     const id = PALETTES.find(p => p.id === word || p.name.toLowerCase() === word)?.id ?? word
+    if (STYLES.some(st => st.id === word) && !ctl.isKnown(word)) return { text: await ctl.setStyle(word) }
     if (!ctl.isKnown(id)) return { text: `No palette called "${args}". ${await ctl.describe()}` }
     return { text: await ctl.choose(id) }
   })
@@ -432,7 +557,7 @@ export const register: Register = on => {
     if (String(e.tool) !== TOOL) return next(e)
     const answer = async (): Promise<string> => {
       if (ctl === undefined) return 'Gradient Flow is still starting; try again in a moment.'
-      const input = e as unknown as { action?: string; palette?: string; name?: string; colors?: string[]; motion?: Motion }
+      const input = e as unknown as { action?: string; palette?: string; name?: string; colors?: string[]; motion?: Motion; style?: string; theme?: string }
       switch (input.action) {
         case 'open_picker':
           await $.ui.open({ id: PANE, title: PANE_TITLE })
@@ -450,6 +575,12 @@ export const register: Register = on => {
           return ctl.setMotion(input.motion)
         case 'remove':
           return ctl.remove(input.palette ?? '')
+        case 'style':
+          return ctl.setStyle(input.style ?? '')
+        case 'export':
+          return ctl.exportTheme()
+        case 'import':
+          return ctl.importTheme(input.theme ?? '')
         default:
           return ctl.describe()
       }
@@ -512,6 +643,9 @@ export const register: Register = on => {
     const notice = await read($, noticeAtom)
     const draft = await read($, draftAtom)
     const busy = await read($, busyAtom)
+    const styleId = await read($, styleAtom)
+    const community = await read($, communityAtom)
+    const files = await read($, filesAtom)
 
     const row = (p: Palette, removable: boolean) => (
       <Box key={`row-${p.id}`} flexDirection="row" alignItems="center" gap={1}>
@@ -543,10 +677,24 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column" gap={1}>
+        <Text bold>Style</Text>
+        <Box flexDirection="row" flexWrap="wrap" gap={1}>
+          {STYLES.map(st => (
+            <Button
+              key={`style-${st.id}`}
+              label={st.name}
+              variant={st.id === styleId ? 'primary' : 'secondary'}
+              onPress={() => void ctl?.setStyle(st.id)}
+            />
+          ))}
+        </Box>
         <Text bold>Palettes</Text>
         {columns(PALETTES, false, 'presets')}
-        {customs.length > 0 ? <Text bold>Yours</Text> : null}
+        {community.length > 0 ? <Text bold>Community</Text> : null}
+        {community.length > 0 ? columns(community, false, 'community') : null}
+        {customs.length + files.length > 0 ? <Text bold>Yours</Text> : null}
         {customs.length > 0 ? columns(customs, true, 'yours') : null}
+        {files.length > 0 ? columns(files, false, 'files') : null}
         <Text bold>Motion</Text>
         <Box flexDirection="row" flexWrap="wrap" gap={1}>
           {MOTIONS.map(m => (
@@ -605,6 +753,18 @@ export const register: Register = on => {
           </Box>
         )}
         {notice ? <Text dimColor>{notice}</Text> : <Text dimColor>Picks preview live behind this pane until you save or discard.</Text>}
+        <Text bold>Share</Text>
+        <Box flexDirection="row" gap={1}>
+          <Button key="export" label="Export current theme" onPress={() => void ctl?.exportTheme()} />
+          <Button key="reload" label="Reload theme files" plain onPress={() => void ctl?.reloadThemes()} />
+        </Box>
+        <Input
+          key="import"
+          placeholder="Import: paste a theme's JSON, or a path to a .json file"
+          submitLabel="Import"
+          onSubmit={value => void ctl?.importTheme(value)}
+        />
+        <Text dimColor>Exported themes are saved to ~/.claude/backdrop/themes. Share the file, or PR it into themes/ for everyone.</Text>
       </Box>
     )
   })

@@ -9,7 +9,8 @@
 
 ### Checklist
 
-- [ ] Added one entry to `hooks/palettes.ts` with `author: '<my GitHub handle>'`
+- [ ] Added `themes/<id>.json` with my `author` (exported with `/backdrop export`), **or** a `hooks/palettes.ts` entry
+- [ ] `node --experimental-strip-types scripts/check-themes.ts` passes
 - [ ] Tried it in the desktop app in dark mode, and text stays readable
 - [ ] `claude plugin validate .` passes
 - [ ] `claude plugin test .` passes (it checks Claude Code can paint every palette)

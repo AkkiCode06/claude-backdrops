@@ -28,7 +28,8 @@ PRs are labeled automatically by the files they change:
 
 | Label | When |
 | --- | --- |
-| `theme` | touches `hooks/palettes.ts` |
+| `theme` | touches `themes/` or `hooks/palettes.ts` |
+| `style` | touches `hooks/styles.ts` or `hooks/kit.ts` (a new background style) |
 | `needs screenshot` | a theme PR with no image or clip yet (it comes off once you add one) |
 | `core` | the mod's code (`hooks/*.ts`, `types/`, `plugin.json`) |
 | `tests` | test files |

@@ -4,7 +4,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.4.1-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-ff7a2e?style=for-the-badge)](.claude-plugin/plugin.json)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-theming%20kit-d97757?style=for-the-badge)](https://github.com/anthropics/claude-code)
 [![Palettes](https://img.shields.io/badge/palettes-23-b532dc?style=for-the-badge)](#palettes)
 [![License: MIT](https://img.shields.io/badge/license-MIT-1fd1a5?style=for-the-badge)](LICENSE)
@@ -32,6 +32,8 @@ Claude Code can now load theme mods, but making one yourself means writing a hoo
 | Reload to see each change | Live preview behind the picker |
 | Work out readable text and panel colors yourself | Panels, text and accents are derived from your colors automatically |
 | Each theme lives on one machine | Share yours with a PR; it ships to everyone, credited to you |
+
+**It's a kit:** themes are plain JSON files you can export, import and share (`/backdrop export`, or drop a file into `~/.claude/backdrop/themes/`), and background styles are built from simple blocks: `k.sky()`, `k.stars()`, `k.waves()`, `k.grid()`… with no SVG or animation code. It ships with four styles (**Gradient, Starfield, Waves, Synthwave**) and a [step-by-step guide](docs/making-themes.md).
 
 It's also a **base to build on**: fork it, add palettes or whole new background styles, and send them back. See [Share your theme](#community-themes) and the [Roadmap](#roadmap).
 
@@ -66,6 +68,8 @@ Start a new Code session: the background appears and a short animated tour opens
 | --- | --- |
 | Open the picker | `/backdrop`, or *"change my background"* |
 | Switch palette | `/backdrop ocean`, click one in the picker, or *"make it synthwave"* |
+| Switch style | `/backdrop style starfield` (gradient, starfield, waves, synthwave), or the **Style** row in the picker |
+| Share a theme | `/backdrop export` saves a `.json` file; `/backdrop import <file or JSON>` loads one |
 | Pause or resume motion | `/backdrop still` · `/backdrop move` · `/backdrop auto` |
 | Watch the tour | `/backdrop tour`, or *"how does this work?"* |
 | See what's available | *"what backgrounds are there?"* |
@@ -165,9 +169,9 @@ Theming Claude Code only just became possible, so there's no shared library of t
 **Share yours in four steps:**
 
 1. **Make it:** in `/backdrop`, describe a look or paste hex colors, and **Save** it once you love it. Or ask your Claude to design one. ([Theme guide](docs/making-themes.md))
-2. **Add it:** fork this repo and add an entry to [`hooks/palettes.ts`](hooks/palettes.ts), with `author: '<your GitHub handle>'` so the picker credits you.
-3. **Check it:** `claude plugin validate .` and `claude plugin test .`. A test makes sure Claude Code can paint it.
-4. **Open a PR** using the **theme** template, with **a screenshot or a short clip** of it running. A few pictures are plenty. PRs that touch `hooks/palettes.ts` get the `theme` label automatically.
+2. **Add it:** `/backdrop export`, then copy the file from `~/.claude/backdrop/themes/` into this repo's [`themes/`](themes) folder. Set `author` to your GitHub handle so the picker credits you.
+3. **Check it:** `node --experimental-strip-types scripts/check-themes.ts`. A GitHub check runs it on your PR too.
+4. **Open a PR** using the **theme** template, with **a screenshot or a short clip** of it running. A few pictures are plenty. Theme PRs get the `theme` label automatically, and new styles get `style`.
 
 Not ready to open a PR? [Drop your colors in an issue](https://github.com/AkkiCode06/claude-backdrops/issues/new?template=palette_request.yml) and someone can pick it up.
 
@@ -181,8 +185,8 @@ The goal: a **Spicetify-style theme marketplace for Claude Code**, where anyone 
 | Status | What |
 | --- | --- |
 | ✅ Done | 23 built-in palettes, make-your-own (describe or hex), `/backdrop` picker, battery-aware motion, welcome tour |
-| 🚧 Now | **Community themes via pull requests**, credited in the picker |
-| 🔜 Next | Themes as standalone files you can share with a link, and import/export from the picker |
+| ✅ Done | **The kit:** theme files with export/import, and the style kit with Gradient, Starfield, Waves and Synthwave |
+| 🚧 Now | **Community themes and styles via pull requests**, credited in the picker |
 | 🔜 Next | **Light mode:** light versions of the palettes, plus themes that follow the system's light/dark setting |
 | 🔜 Next | **High-contrast mode:** stronger borders and text for readability and accessibility |
 | 🔜 Next | **Focus mode:** a calm, near-still backdrop while Claude is working, which wakes up when it's done |

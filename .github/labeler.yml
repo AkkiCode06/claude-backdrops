@@ -1,7 +1,14 @@
 # Labels added to pull requests by the files they change (actions/labeler v5).
 theme:
   - changed-files:
-      - any-glob-to-any-file: hooks/palettes.ts
+      - any-glob-to-any-file:
+          - hooks/palettes.ts
+          - themes/**
+style:
+  - changed-files:
+      - any-glob-to-any-file:
+          - hooks/styles.ts
+          - hooks/kit.ts
 core:
   - changed-files:
       - any-glob-to-any-file:

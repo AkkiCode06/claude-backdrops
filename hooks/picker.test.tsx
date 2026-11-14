@@ -1,6 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 import { colorsFor } from './custom'
 import { PALETTES } from './palettes'
+import { STYLES } from './styles'
+import { parseTheme, toThemeFile } from './themes'
 
 const PANE = {
   plugin: 'gradient-flow',
@@ -18,7 +20,28 @@ const PANE = {
 
 // Stand in for the engine: nothing stored yet, plugged in, every theme drawn.
 type TestOn = Parameters<Extract<Parameters<typeof test>[1], (...args: never[]) => unknown>>[1]
-const engine = (on: TestOn, opts: { welcomed?: boolean; opened?: string[]; placed?: boolean; stored?: Record<string, unknown> } = {}) => {
+const engine = (
+  on: TestOn,
+  opts: { welcomed?: boolean; opened?: string[]; placed?: boolean; stored?: Record<string, unknown>; files?: Record<string, string>; written?: Record<string, string> } = {},
+) => {
+  on('env.get', () => ({ value: '/home/test' }))
+  on('fs.list', (_, e) => {
+    const dir = String(e.path ?? '')
+    const local = (f: string) => (f.startsWith('PLUGIN/') && !dir.startsWith('/home/test') ? dir.replace(/\/themes$/, '') + f.slice('PLUGIN'.length) : f)
+    const names = Object.keys(opts.files ?? {}).map(local).filter(f => f.startsWith(dir + '/')).map(f => f.slice(dir.length + 1))
+    if (names.length === 0) throw new Error('ENOENT')
+    return { value: names.map(name => ({ name, kind: 'file', size: 1, mtimeMs: 0, isLink: false })) }
+  })
+  on('fs.read', (_, e) => {
+    const path = String(e.path)
+    const text = (opts.files ?? {})[path] ?? Object.entries(opts.files ?? {}).find(([k]) => k.startsWith('PLUGIN/') && path.endsWith(k.slice('PLUGIN'.length)))?.[1]
+    if (text === undefined) throw new Error('ENOENT')
+    return { value: text }
+  })
+  on('fs.write', (_, e) => {
+    if (opts.written) opts.written[String(e.path)] = String(e.text)
+    return { value: undefined }
+  })
   on('store.get', (_, e) => ({ value: e.key === 'welcomed' ? opts.welcomed : undefined }))
   on('store.set', (_, e) => {
     if (opts.stored) opts.stored[e.key] = e.value
@@ -143,4 +166,48 @@ test('Claude Code will paint every built-in palette', () => {
     const blocking = colorsFor(p).problems.filter(line => line.startsWith("Desktop won't paint"))
     expect({ palette: p.id, blocking }).toEqual({ palette: p.id, blocking: [] })
   }
+})
+
+const THEME = JSON.stringify({ id: 'rainy-tokyo', name: 'Rainy Tokyo', author: 'someone', style: 'starfield', colors: ['#05061a', '#ff2e88', '#00c2ff'] })
+
+test('theme files in themes/ show up as Community, credited, and switch the style', async ($, on) => {
+  engine(on, { files: { 'PLUGIN/themes/rainy-tokyo.json': THEME } })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect((await ui.find({ type: 'Text', text: /^Community$/ }))?.text).toBe('Community')
+  expect((await ui.find({ type: 'Text', text: /by @someone/ }))?.text).toMatch(/someone/)
+  await ui.press({ key: 'pick-rainy-tokyo' })
+  const tree = JSON.stringify(await ui.find({ type: 'Box' }))
+  expect(tree).toMatch(/Starfield/)
+  await ui.unmount()
+})
+
+test('export writes a theme file to ~/.claude/backdrop/themes', async ($, on) => {
+  const written: Record<string, string> = {}
+  engine(on, { written })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'export' })
+  const path = Object.keys(written)[0] ?? ''
+  expect(path).toBe('/home/test/.claude/backdrop/themes/ember.json')
+  expect(JSON.parse(written[path] ?? '{}').name).toBe('Ember')
+  await ui.unmount()
+})
+
+test('every style draws every palette, moving and still, within the size limit', () => {
+  for (const st of STYLES) for (const p of PALETTES) for (const mode of [{ kind: 'flow', run: { from: [0, 0, 0, 0, 0], ramp: true } }, { kind: 'still', at: [0, 0, 0, 0, 0] }] as const) {
+    const svg = st.build(p, mode as never)
+    expect(svg.startsWith('<svg')).toBe(true)
+    expect(svg.length < 131072).toBe(true)
+    if (mode.kind === 'still') expect(/<animate/.test(svg) && st.id !== 'gradient').toBe(false)
+  }
+})
+
+test('theme files: the quick and full shapes parse, broken ones say why', () => {
+  const quick = parseTheme(THEME)
+  expect('palette' in quick && quick.palette.author).toBe('someone')
+  const full = parseTheme(JSON.stringify(toThemeFile(PALETTES[0]!)))
+  expect('palette' in full && full.palette.name).toBe('Ember')
+  const bad = parseTheme('{"id":"Bad Id","name":"x","colors":["#fff"]}')
+  expect('error' in bad && bad.error).toMatch(/id/)
 })

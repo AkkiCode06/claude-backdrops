@@ -5,6 +5,7 @@ export type StoredPalette = {
   id: string
   name: string
   author?: string
+  style?: string
   base: readonly [string, string, string]
   glows: readonly [string, string, string, string, string]
   surfaces: readonly [string, string, string, string]
@@ -27,6 +28,12 @@ declare module 'claude-code' {
       draft: string[]
       // True while a described look is being turned into colors.
       busy: boolean
+      // The background style in use (see hooks/styles.ts).
+      style: string
+      // Themes loaded from theme files: themes/*.json (community) and
+      // ~/.claude/backdrop/themes/*.json (the user's own).
+      community: Shaped<StoredPalette[]>
+      files: Shaped<StoredPalette[]>
     }
   }
 }

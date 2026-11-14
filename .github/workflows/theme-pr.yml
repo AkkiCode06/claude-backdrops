@@ -4,6 +4,7 @@ on:
     types: [opened, edited, synchronize, reopened]
     paths:
       - hooks/palettes.ts
+      - themes/**
 
 permissions:
   pull-requests: write
